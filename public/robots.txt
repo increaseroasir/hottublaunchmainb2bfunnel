@@ -1,0 +1,22 @@
+User-agent: *
+Allow: /
+
+# Funnel mid/end pages — keep out of organic crawl
+Disallow: /thankyou-general
+Disallow: /case-study/booking
+Disallow: /case-study/thank-you/
+Disallow: /profit-playbook/booking-calendar
+Disallow: /profit-playbook/pre-call-lite
+Disallow: /webinar-registration/booking
+Disallow: /webinar-registration/thank-you/
+Disallow: /webinar-registration/webinar-confirmation
+
+# Drafts / internal previews
+Disallow: /homepage-draft.html
+Disallow: /homepage-ai-draft.html
+Disallow: /ai-components-draft.html
+Disallow: /motorsports-preview/
+Disallow: /hottublaunchai-preview/
+Disallow: /email-signature/
+
+Sitemap: https://hottublaunch.com/sitemap.xml

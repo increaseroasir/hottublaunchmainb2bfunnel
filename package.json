@@ -1,0 +1,23 @@
+{
+  "name": "hottublaunch-main",
+  "type": "module",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "astro dev",
+    "build": "astro build",
+    "preview": "astro preview",
+    "check": "astro check"
+  },
+  "dependencies": {
+    "@astrojs/cloudflare": "^14.2.2",
+    "@astrojs/node": "^11.1.3",
+    "astro": "^7.2.3"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.6",
+    "@cloudflare/workers-types": "^5.20260819.1",
+    "@types/node": "^26.2.0",
+    "typescript": "^5.9.2"
+  }
+}

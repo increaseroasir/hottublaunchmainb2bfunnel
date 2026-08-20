@@ -1,0 +1,11 @@
+name = "hottublaunch-main"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "hottublaunch-b2b"
+database_id = ""
+
+[vars]
+SITE_URL = "https://hottublaunch.com"

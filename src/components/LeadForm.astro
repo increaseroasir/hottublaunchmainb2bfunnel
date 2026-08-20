@@ -1,0 +1,206 @@
+---
+import { funnel } from '../data/funnel';
+
+interface Props {
+  id?: string;
+}
+
+const { id = 'ticket' } = Astro.props;
+const { ticket } = funnel;
+const showError = Astro.url.searchParams.get('error') === '1';
+---
+
+<form class="lead-form" id={id} action="/api/lead" method="POST" novalidate>
+  {showError && <p class="form-error">{ticket.errors.generic}</p>}
+
+  <!-- Hidden tracking fields -->
+  <input type="hidden" name="leadUuid" id="leadUuid" value="" />
+  <input type="hidden" name="eventId" id="eventId" value="" />
+  <input type="hidden" name="fbp" id="fbp" value="" />
+  <input type="hidden" name="fbc" id="fbc" value="" />
+  <input type="hidden" name="fbclid" id="fbclid" value="" />
+  <input type="hidden" name="utmSource" id="utmSource" value="" />
+  <input type="hidden" name="utmMedium" id="utmMedium" value="" />
+  <input type="hidden" name="utmCampaign" id="utmCampaign" value="" />
+  <input type="hidden" name="utmContent" id="utmContent" value="" />
+  <input type="hidden" name="utmTerm" id="utmTerm" value="" />
+  <input type="hidden" name="landingUrl" id="landingUrl" value="" />
+  <input type="hidden" name="quizAnswers" id="quizAnswers" value="" />
+
+  <label class="input-shell" for={`${id}-name`}>
+    <span class="prefix" aria-hidden="true">{ticket.fields.name.emoji}</span>
+    <input
+      id={`${id}-name`}
+      name="name"
+      type="text"
+      required
+      autocomplete={ticket.fields.name.autocomplete}
+      placeholder={ticket.fields.name.placeholder}
+    />
+  </label>
+  <span class="field-error" data-error-for="name"></span>
+
+  <label class="input-shell" for={`${id}-lastName`}>
+    <span class="prefix" aria-hidden="true">{ticket.fields.lastName.emoji}</span>
+    <input
+      id={`${id}-lastName`}
+      name="lastName"
+      type="text"
+      autocomplete={ticket.fields.lastName.autocomplete}
+      placeholder={ticket.fields.lastName.placeholder}
+    />
+  </label>
+
+  <label class="input-shell" for={`${id}-email`}>
+    <span class="prefix" aria-hidden="true">{ticket.fields.email.emoji}</span>
+    <input
+      id={`${id}-email`}
+      name="email"
+      type="email"
+      required
+      autocomplete={ticket.fields.email.autocomplete}
+      placeholder={ticket.fields.email.placeholder}
+    />
+  </label>
+  <span class="field-error" data-error-for="email"></span>
+
+  <label class="input-shell" for={`${id}-phone`}>
+    <span class="prefix" aria-hidden="true">{ticket.fields.phone.emoji}</span>
+    <input
+      id={`${id}-phone`}
+      name="phone"
+      type="tel"
+      autocomplete={ticket.fields.phone.autocomplete}
+      placeholder={ticket.fields.phone.placeholder}
+    />
+  </label>
+
+  <button class="btn-pill btn-wide btn-stack" type="submit" data-submit>
+    <span>{ticket.submit}</span>
+    <small>{ticket.submitWhen}</small>
+  </button>
+</form>
+
+<script
+  is:inline
+  define:vars={{ errors: ticket.errors, pending: ticket.submitPending }}
+>
+  (function () {
+    const formEl = document.currentScript.previousElementSibling;
+    if (!(formEl instanceof HTMLFormElement)) return;
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function value(name) {
+      const input = formEl.elements.namedItem(name);
+      return input instanceof HTMLInputElement ? input.value.trim() : '';
+    }
+
+    function setError(name, message) {
+      const input = formEl.elements.namedItem(name);
+      const slot = formEl.querySelector('[data-error-for="' + name + '"]');
+      if (input instanceof HTMLInputElement) {
+        input.setAttribute('aria-invalid', message ? 'true' : 'false');
+      }
+      if (slot) slot.textContent = message;
+    }
+
+    function validate() {
+      const name = value('name');
+      const email = value('email');
+      const next = {
+        name: name.length >= 2 ? '' : errors.name,
+        email: emailRe.test(email) ? '' : errors.email,
+      };
+      setError('name', next.name);
+      setError('email', next.email);
+      return !next.name && !next.email;
+    }
+
+    // Capture tracking params from URL and cookies
+    function captureTracking() {
+      const params = new URLSearchParams(window.location.search);
+      const getHidden = function (id) {
+        const el = document.getElementById(id);
+        return el instanceof HTMLInputElement ? el : null;
+      };
+
+      // leadUuid + eventId
+      var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
+      var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
+      if (!lu) { lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); sessionStorage.setItem('lead_uuid', lu); }
+      if (!ei) { ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); }); sessionStorage.setItem('event_id', ei); }
+
+      var hlu = getHidden('leadUuid'); if (hlu) hlu.value = lu;
+      var hei = getHidden('eventId'); if (hei) hei.value = ei;
+
+      // UTMs
+      var utmFields = ['utmSource','utmMedium','utmCampaign','utmContent','utmTerm'];
+      utmFields.forEach(function (f) {
+        var stored = sessionStorage.getItem(f);
+        var fromUrl = params.get(f);
+        var val = fromUrl || stored || '';
+        if (fromUrl) sessionStorage.setItem(f, fromUrl);
+        var h = getHidden(f); if (h) h.value = val;
+      });
+
+      // fbclid
+      var fbclid = params.get('fbclid') || '';
+      var hfbclid = getHidden('fbclid'); if (hfbclid) hfbclid.value = fbclid;
+
+      // fbp / fbc from Meta cookies
+      var fbp = '';
+      var fbc = '';
+      document.cookie.split('; ').forEach(function (c) {
+        if (c.startsWith('_fbp=')) fbp = c.slice(5);
+        if (c.startsWith('_fbc=')) fbc = c.slice(5);
+      });
+      var hfbp = getHidden('fbp'); if (hfbp) hfbp.value = fbp;
+      var hfbc = getHidden('fbc'); if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
+
+      // landing url
+      var landing = sessionStorage.getItem('landing_url') || window.location.href.split('?')[0];
+      if (!sessionStorage.getItem('landing_url')) sessionStorage.setItem('landing_url', landing);
+      var hl = getHidden('landingUrl'); if (hl) hl.value = landing;
+    }
+
+    // Capture quiz answers from session storage
+    function captureQuizAnswers() {
+      var answers = {};
+      var quizKeys = ['hasShowroom', 'monthlyVolume', 'challenge'];
+      quizKeys.forEach(function (k) {
+        var v = sessionStorage.getItem(k);
+        if (v) answers[k] = v;
+      });
+      if (Object.keys(answers).length > 0) {
+        var h = document.getElementById('quizAnswers');
+        if (h instanceof HTMLInputElement) h.value = JSON.stringify(answers);
+      }
+    }
+
+    // Run tracking capture on page load
+    captureTracking();
+
+    formEl.addEventListener('submit', function (event) {
+      captureQuizAnswers();
+      if (!validate()) {
+        event.preventDefault();
+        return;
+      }
+      // Fire Pixel Lead event with matching event_id
+      var eid = (document.getElementById('eventId') instanceof HTMLInputElement)
+        ? document.getElementById('eventId').value : '';
+      if (typeof fbq === 'function' && eid) {
+        fbq('track', 'Lead', {}, {eventID: eid});
+      }
+      try {
+        sessionStorage.setItem('lead_name', value('name'));
+        sessionStorage.setItem('lead_email', value('email'));
+      } catch (err) {}
+      const button = formEl.querySelector('[data-submit]');
+      if (button instanceof HTMLButtonElement) {
+        button.disabled = true;
+      }
+    });
+  })();
+</script>

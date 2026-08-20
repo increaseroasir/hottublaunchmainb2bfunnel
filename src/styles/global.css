@@ -1,0 +1,56 @@
+/* ============================================================
+   HOT TUB LAUNCH — Design System
+   Tokens: cream/ink/red palette, Montserrat + Manrope
+   ============================================================ */
+:root{
+  --cream:#FAF7F2; --paper:#FFFFFF; --ink:#191919; --ink-2:#211E1C;
+  --ink-soft:#3A3532; --muted:#6E655F; --muted-dark:#A79F97;
+  --red:#CE1126; --red-dark:#A80E1F; --line:#E7E0D6; --line-dark:rgba(250,247,242,.14);
+
+  /* added token layer: spacing, easing, elevation, radii */
+  --s-1:clamp(.5rem,1vw,.75rem);
+  --s-2:clamp(1rem,2vw,1.5rem);
+  --s-3:clamp(1.75rem,3.5vw,2.5rem);
+  --s-4:clamp(2.5rem,5vw,4rem);
+  --s-5:clamp(3.5rem,7vw,6.5rem);
+  --s-6:clamp(5rem,10vw,9rem);
+  --e-out:cubic-bezier(.16,1,.3,1);
+  --e-spring:cubic-bezier(.34,1.36,.64,1);
+  --e-soft:cubic-bezier(.4,0,.2,1);
+  --el-1:0 1px 2px rgba(25,25,25,.04),0 8px 24px -8px rgba(25,25,25,.08);
+  --el-2:0 1px 3px rgba(25,25,25,.05),0 16px 40px -12px rgba(25,25,25,.10);
+  --el-3:0 2px 4px rgba(25,25,25,.05),0 24px 56px -16px rgba(25,25,25,.12),inset 0 1px 0 rgba(255,255,255,.6);
+  --el-4:0 3px 6px rgba(25,25,25,.06),0 40px 80px -24px rgba(25,25,25,.16),inset 0 1px 0 rgba(255,255,255,.7);
+  --el-ink:0 2px 6px rgba(0,0,0,.3),0 32px 64px -20px rgba(0,0,0,.55),inset 0 1px 0 rgba(250,247,242,.09);
+  --glow-red:0 18px 40px -12px rgba(206,17,38,.45);
+  --glow-red-lg:0 10px 24px -8px rgba(206,17,38,.4),0 28px 60px -18px rgba(206,17,38,.5);
+  --r-sm:6px; --r-md:10px; --r-lg:16px; --r-xl:22px;
+  --measure:60ch;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+section[id]{scroll-margin-top:112px}
+::selection{background:rgba(206,17,38,.22);color:var(--ink)}
+::-webkit-scrollbar{width:11px}
+::-webkit-scrollbar-track{background:var(--cream)}
+::-webkit-scrollbar-thumb{background:var(--muted-dark);border-radius:6px;border:2px solid var(--cream)}
+::-webkit-scrollbar-thumb:hover{background:var(--red)}
+body{background:var(--cream);color:var(--ink-soft);font-family:'Manrope',system-ui,sans-serif;font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased}
+a{color:inherit;text-decoration:none}
+h1,h2,h3{font-family:'Montserrat',sans-serif;color:var(--ink);text-transform:uppercase;line-height:1.05;font-weight:900}
+h2{font-size:clamp(1.6rem,3.4vw,2.5rem);letter-spacing:-.015em}
+h3{font-size:1.15rem;font-weight:800}
+p{max-width:64ch}
+.red{color:var(--red)}
+.wrap{max-width:1080px;margin-inline:auto;padding-inline:clamp(1.2rem,4vw,2.5rem)}
+.eyebrow{display:inline-flex;align-items:center;gap:.6rem;font-family:'Montserrat';font-weight:700;font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink);margin-bottom:1.1rem}
+.eyebrow::before{content:"";width:3px;height:1.05em;background:var(--red);flex:none}
+.eyebrow.on-ink{color:var(--cream)}
+
+.btn{display:inline-flex;align-items:center;gap:.6rem;font-family:'Montserrat';font-weight:800;font-size:.82rem;letter-spacing:.05em;text-transform:uppercase;padding:1.05em 1.9em;border-radius:4px;border:0;cursor:pointer;transition:.15s;line-height:1}
+.btn--primary{background:var(--red);color:#fff;box-shadow:0 14px 30px rgba(206,17,38,.28)}
+.btn--primary:hover{background:var(--red-dark);transform:translateY(-2px)}
+.btn--outline{background:transparent;border:2px solid var(--ink);color:var(--ink)}
+.btn--outline.on-ink{border-color:rgba(250,247,242,.5);color:var(--cream)}
+.btn .arrow{display:inline-flex;transition:transform .2s ease}
+.btn:hover .arrow{transform:translateX(4px)}

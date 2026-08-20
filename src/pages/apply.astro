@@ -731,6 +731,20 @@ import Layout from '../layouts/Layout.astro';
       // Run tracking capture on page load
       captureTracking();
 
+      // SHA-256 hex (matches server-side hashing in /api/lead)
+      async function sha256hex(str) {
+        var data = new TextEncoder().encode(str);
+        var digest = await crypto.subtle.digest('SHA-256', data);
+        return Array.from(new Uint8Array(digest)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
+      }
+      // Normalize phone the same way the server does (strip non-digits, 10-digit -> +1)
+      function normPhone(p) {
+        var d = String(p).replace(/\D/g, '');
+        if (d.startsWith('00')) d = d.slice(2);
+        if (d.length === 10) d = '1' + d;
+        return d;
+      }
+
       formEl.addEventListener('submit', function (event) {
         captureQuizAnswers();
 
@@ -743,7 +757,23 @@ import Layout from '../layouts/Layout.astro';
         var eid = (document.getElementById('eventId') instanceof HTMLInputElement)
           ? document.getElementById('eventId').value : '';
         if (typeof fbq === 'function' && eid) {
-          fbq('track', 'Lead', {}, {eventID: eid});
+          // AAM: pass hashed user data (matches server CAPI hashes) so browser+server pair on same identity
+          var lu = (document.getElementById('leadUuid') instanceof HTMLInputElement)
+            ? document.getElementById('leadUuid').value : '';
+          Promise.all([
+            sha256hex(value('email').trim().toLowerCase()),
+            sha256hex(normPhone(value('phone'))),
+            sha256hex(value('name').trim().toLowerCase()),
+            sha256hex(value('lastName').trim().toLowerCase()),
+            lu ? sha256hex(lu) : Promise.resolve(''),
+          ]).then(function (h) {
+            fbq('init', '1200252438858536', {
+              em: h[0], ph: h[1], fn: h[2], ln: h[3], external_id: h[4] || undefined,
+            });
+            fbq('track', 'Lead', {}, {eventID: eid});
+          }).catch(function () {
+            fbq('track', 'Lead', {}, {eventID: eid});
+          });
         }
 
         // Persist lead info in session

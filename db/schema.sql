@@ -18,6 +18,8 @@ CREATE TABLE IF NOT EXISTS leads (
   ip TEXT,
   user_agent TEXT,
   ghl_contact_id TEXT,
+  status TEXT NOT NULL DEFAULT 'pending',
+  status_message TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now'))
 );
 

@@ -155,8 +155,15 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   }
   if (!leadUuid) leadUuid = uuidV7();
   if (!eventId) eventId = uuidV7();
-  const fbp = asString(body.fbp);
-  const fbc = asString(body.fbc) || (asString(body.fbclid) ? `fb.1.${Math.floor(Date.now() / 1000)}.${asString(body.fbclid)}` : '');
+  // fbp/fbc ride the Cookie header on every same-origin POST — read them server-side,
+  // never trust the client body (the form posted empty strings even though cookies existed).
+  const cookieHeader = request.headers.get('cookie') || '';
+  const cookieVal = (name: string) => {
+    const m = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
+    return m ? decodeURIComponent(m[1]) : '';
+  };
+  const fbp = asString(body.fbp) || cookieVal('_fbp');
+  const fbc = asString(body.fbc) || cookieVal('_fbc') || (asString(body.fbclid) ? `fb.1.${Math.floor(Date.now() / 1000)}.${asString(body.fbclid)}` : '');
   const utmSource = asString(body.utmSource);
   const utmMedium = asString(body.utmMedium);
   const utmCampaign = asString(body.utmCampaign);
@@ -174,10 +181,27 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   if (DB) {
     try {
       await DB.prepare(
-        `INSERT OR IGNORE INTO leads (lead_uuid, event_id, name, last_name, phone, email, fbp, fbc, utm_source, utm_medium, utm_campaign, utm_content, utm_term, landing_url, quiz_answers, ip, user_agent, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT OR IGNORE INTO leads (lead_uuid, event_id, name, last_name, phone, email, fbp, fbc, utm_source, utm_medium, utm_campaign, utm_content, utm_term, landing_url, quiz_answers, ip, user_agent, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ok', ?)`
       ).bind(leadUuid, eventId, name, lastName || null, phone || null, email, fbp, fbc, utmSource, utmMedium, utmCampaign, utmContent, utmTerm, landingUrl, quizAnswers ? JSON.stringify(quizAnswers) : null, ip, ua, now).run();
     } catch (e) {
-      console.error('D1 insert error:', (e as Error)?.name || 'unknown');
+      const errMsg = (e as Error)?.message || 'unknown';
+      const errName = (e as Error)?.name || 'unknown';
+      console.error('D1 insert error:', errName, errMsg);
+      // Mark the lead as failed in D1 (INSERT may have failed entirely — try UPDATE if partial)
+      try {
+        await DB.prepare(
+          `INSERT OR IGNORE INTO leads (lead_uuid, event_id, name, last_name, phone, email, status, status_message, created_at) VALUES (?, ?, ?, ?, ?, ?, 'd1_failed', ?, ?)`
+        ).bind(leadUuid, eventId, name, lastName || null, email, `${errName}: ${errMsg.substring(0, 200)}`, now).run();
+      } catch (e2) { /* best-effort */ }
+      // Fire alert via webhook if configured
+      const alertUrl = getScrt('ALERT_WEBHOOK_URL');
+      if (alertUrl) {
+        fetch(alertUrl, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ alert: 'D1_INSERT_FAILED', lead_uuid: leadUuid, error: errName, message: errMsg.substring(0, 500) }),
+        }).catch(() => {});
+      }
     }
   }
 
@@ -204,20 +228,27 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         body: JSON.stringify(ghlPayload),
       });
 
-      const ghlData = await ghlRes.json();
+      // Log the full GHL response for diagnostics — status + body (no token echo)
+      if (!ghlRes.ok) {
+        console.error('GHL upsert FAILED:', ghlRes.status, await ghlRes.text());
+      }
+      const ghlData = await ghlRes.json() as { contact?: { id?: string } } | null;
       ghlContactId = ghlData?.contact?.id || '';
+      if (!ghlContactId) {
+        console.error('GHL upsert: no contact.id in response. Status:', ghlRes.status, 'Body:', JSON.stringify(ghlData).slice(0, 500));
+      }
       // Backfill D1 with the GHL contact ID so the lead↔contact link is never null
       if (ghlContactId && DB) {
         try {
           await DB.prepare(
-            `UPDATE leads SET ghl_contact_id = ? WHERE lead_uuid = ?`
+            `UPDATE leads SET ghl_contact_id = ?, status = 'ghl_wired' WHERE lead_uuid = ?`
           ).bind(ghlContactId, leadUuid).run();
         } catch (e) {
-          console.error('D1 ghl_contact_id backfill error:', (e as Error)?.name || 'unknown');
+          console.error('D1 ghl_contact_id backfill error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.substring(0, 100) || '');
         }
       }
     } catch (e) {
-      console.error('GHL upsert error:', (e as Error)?.name || 'unknown');
+      console.error('GHL upsert error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 300) || 'no message');
     }
   }
 

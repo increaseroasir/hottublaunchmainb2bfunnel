@@ -5,7 +5,7 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "hottublaunch-b2b"
-database_id = ""
+database_id = "6891bc02-67f7-49fc-9fec-e4c98cb247e5"
 
 [vars]
 SITE_URL = "https://hottublaunch.com"

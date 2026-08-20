@@ -1,0 +1,919 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Free Download: The 2026 Hot Tub Store AI Profit Playbook"
+  description="Free playbook for hot tub store owners — why your store is losing buyers and the system to start capturing them again."
+  pageClass="profit-playbook-page"
+  robots="index, follow"
+>
+  <style is:global>
+    /* ============================================================
+       PROFIT PLAYBOOK — standalone opt-in page
+       Design: trust bar → headline → sounds-like-you → book mockup
+               → form → reframe → in-this-book → PLUS → authenticity
+               → footer
+       ============================================================ */
+    :root {
+      --pb-white:  #FFFFFF;
+      --pb-paper:  #FAF9F6;
+      --pb-band:   #F1EEE9;
+      --pb-ink:    #0E0C0B;
+      --pb-gray:   #403B36;
+      --pb-muted:  #857E76;
+      --pb-red:    #CE1126;
+      --pb-red-dk: #A80E1F;
+      --pb-line:   #E7E1D8;
+      --pb-wrap:   660px;
+    }
+
+    .profit-playbook-page {
+      background: var(--pb-paper);
+      color: var(--pb-gray);
+      font-size: 17px;
+      line-height: 1.55;
+    }
+    .profit-playbook-page a { color: inherit; text-decoration: none; }
+    .profit-playbook-page h1,
+    .profit-playbook-page h2 {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      text-transform: uppercase;
+      line-height: 1.06;
+      font-weight: 900;
+      letter-spacing: -.01em;
+      color: var(--pb-ink);
+    }
+    .profit-playbook-page .red { color: var(--pb-red); }
+
+    .profit-playbook-page .wrap {
+      max-width: var(--pb-wrap);
+      margin-inline: auto;
+      padding-inline: 1.2rem;
+    }
+
+    /* btn -- same as source */
+    .profit-playbook-page .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      width: 100%;
+      cursor: pointer;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      padding: 1.1em 1.3em;
+      border-radius: 8px;
+      border: 0;
+      background: var(--pb-red);
+      color: #fff;
+      transition: .15s;
+      box-shadow: 0 12px 28px rgba(206, 17, 38, .3);
+      line-height: 1.15;
+    }
+    .profit-playbook-page .btn:hover {
+      background: var(--pb-red-dk);
+      transform: translateY(-2px);
+    }
+    .profit-playbook-page .btn:disabled {
+      opacity: .65;
+      cursor: default;
+      transform: none;
+    }
+
+    /* trust bar */
+    .profit-playbook-page .trustbar {
+      text-align: center;
+      padding: 1.5rem 0 .4rem;
+    }
+    .profit-playbook-page .stars {
+      color: var(--pb-red);
+      font-size: 1.1rem;
+      letter-spacing: 2px;
+    }
+    .profit-playbook-page .avis {
+      display: inline-flex;
+      vertical-align: middle;
+      margin-right: .5rem;
+    }
+    .profit-playbook-page .avis span {
+      width: 26px;
+      height: 26px;
+      border-radius: 50%;
+      border: 2px solid var(--pb-paper);
+      margin-left: -8px;
+      background: linear-gradient(150deg, #c9c1b6, #8a827a);
+      display: inline-block;
+    }
+    .profit-playbook-page .avis span:first-child { margin-left: 0; }
+    .profit-playbook-page .trusttext {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--pb-gray);
+      margin-top: .5rem;
+    }
+
+    /* intro */
+    .profit-playbook-page .intro {
+      text-align: center;
+      padding: .4rem 0 1.4rem;
+    }
+    .profit-playbook-page .intro h1 {
+      font-size: clamp(1.6rem, 4.5vw, 2.3rem);
+      margin-bottom: .9rem;
+    }
+    .profit-playbook-page .intro .sub {
+      font-style: italic;
+      font-weight: 600;
+      font-size: 1.02rem;
+      color: var(--pb-gray);
+      max-width: 52ch;
+      margin: 0 auto;
+    }
+
+    /* if this sounds like you */
+    .profit-playbook-page .sounds {
+      padding: .6rem 0 1.2rem;
+    }
+    .profit-playbook-page .sounds h3 {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: 1.1rem;
+      color: var(--pb-ink);
+      margin-bottom: 1rem;
+    }
+    .profit-playbook-page .clist {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: .7rem;
+      margin-bottom: 1.1rem;
+    }
+    .profit-playbook-page .clist li {
+      display: flex;
+      gap: .7rem;
+      align-items: flex-start;
+      font-size: 1.05rem;
+      color: var(--pb-gray);
+    }
+    .profit-playbook-page .clist li svg {
+      flex: none;
+      margin-top: .2em;
+    }
+    .profit-playbook-page .sounds .kick {
+      font-size: 1.08rem;
+      color: var(--pb-ink);
+      font-weight: 600;
+    }
+
+    /* book mockup — CSS-only 3D book */
+    .profit-playbook-page .mock-sec {
+      padding: 2.4rem 0 1.4rem;
+      display: flex;
+      justify-content: center;
+      background: #E4DFDB;
+      border-top: 1px solid var(--pb-line);
+    }
+    .profit-playbook-page .pb-scene {
+      position: relative;
+      width: 360px;
+      height: 300px;
+    }
+    .profit-playbook-page .pb-book {
+      position: absolute;
+      left: 30px;
+      top: 50%;
+      width: 212px;
+      height: 288px;
+      transform: translateY(-50%) rotate(-3deg);
+      border-radius: 3px 7px 7px 3px;
+      box-shadow: 0 30px 55px rgba(20, 15, 10, .34), 0 10px 22px rgba(20, 15, 10, .26);
+      z-index: 2;
+    }
+    .profit-playbook-page .pb-cover {
+      position: absolute;
+      inset: 0;
+      background: #141210;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      padding: 8% 8% 6.5%;
+      color: #fff;
+      border-radius: 2px 6px 6px 2px;
+    }
+    .profit-playbook-page .pb-eyebrow {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: .5rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      opacity: .85;
+    }
+    .profit-playbook-page .pb-eyebrow i {
+      width: 12px;
+      height: 2px;
+      background: var(--pb-red);
+    }
+    .profit-playbook-page .pb-title {
+      text-transform: uppercase;
+      line-height: .9;
+      margin-top: 8%;
+      font-family: 'Montserrat', system-ui, sans-serif;
+    }
+    .profit-playbook-page .pb-title .s {
+      display: block;
+      font-weight: 800;
+      font-size: .72rem;
+      letter-spacing: .02em;
+    }
+    .profit-playbook-page .pb-title .b {
+      display: block;
+      font-weight: 900;
+      font-size: 1.9rem;
+      letter-spacing: -.02em;
+      color: var(--pb-red);
+      margin-top: 2px;
+    }
+    .profit-playbook-page .pb-title .w {
+      display: block;
+      font-weight: 900;
+      font-size: 1.18rem;
+      color: #fff;
+      margin-top: -2px;
+    }
+    .profit-playbook-page .pb-art {
+      margin-top: auto;
+      border-radius: 3px;
+      overflow: hidden;
+      position: relative;
+      height: 30%;
+    }
+    .profit-playbook-page .pb-art-img {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(90% 120% at 50% 0%, rgba(206, 17, 38, .22), transparent 55%),
+                  linear-gradient(160deg, #2b2723, #15120f 70%);
+    }
+    .profit-playbook-page .pb-tubs {
+      position: absolute;
+      bottom: 14%;
+      left: 0;
+      right: 0;
+      display: flex;
+      justify-content: center;
+      gap: 8%;
+      opacity: .85;
+    }
+    .profit-playbook-page .pb-tubs span {
+      width: 20px;
+      height: 9px;
+      border-radius: 4px 4px 5px 5px;
+      background: linear-gradient(180deg, #3a352f, #211d19);
+    }
+    .profit-playbook-page .pb-sub {
+      font-weight: 600;
+      font-size: .42rem;
+      line-height: 1.35;
+      color: #CFC7BE;
+      margin-top: 6%;
+    }
+    .profit-playbook-page .pb-sub b { color: #fff; }
+    .profit-playbook-page .pb-by {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: 5%;
+    }
+    .profit-playbook-page .pb-by .by {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: .44rem;
+      letter-spacing: .05em;
+      text-transform: uppercase;
+    }
+    .profit-playbook-page .pb-by .by span { color: var(--pb-red); }
+    .profit-playbook-page .pb-icons {
+      display: flex;
+      gap: 5px;
+    }
+    .profit-playbook-page .pb-icons i {
+      width: 9px;
+      height: 9px;
+      border: 1.2px solid rgba(255, 255, 255, .55);
+      border-radius: 2px;
+    }
+    .profit-playbook-page .pb-book::before {
+      content: "";
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 11px;
+      z-index: 5;
+      background: linear-gradient(90deg, rgba(0,0,0,.55), rgba(255,255,255,.05) 55%, rgba(0,0,0,.28));
+      border-radius: 2px 0 0 2px;
+    }
+    .profit-playbook-page .pb-book::after {
+      content: "";
+      position: absolute;
+      right: -4px;
+      top: 6px;
+      bottom: 6px;
+      width: 4px;
+      border-radius: 0 2px 2px 0;
+      background: repeating-linear-gradient(180deg, #efe9df, #efe9df 1px, #cfc7bb 2px, #cfc7bb 3px);
+    }
+    /* interior page peeking */
+    .profit-playbook-page .pb-inside {
+      position: absolute;
+      right: 20px;
+      top: 50%;
+      width: 190px;
+      height: 258px;
+      transform: translateY(-46%) rotate(5deg);
+      background: #fff;
+      border-radius: 6px;
+      box-shadow: 0 26px 48px rgba(20, 15, 10, .24);
+      z-index: 1;
+      padding: 22px;
+      overflow: hidden;
+    }
+    .profit-playbook-page .pi-eye {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: .5rem;
+      letter-spacing: .16em;
+      text-transform: uppercase;
+      color: var(--pb-red);
+    }
+    .profit-playbook-page .pi-h {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: .85rem;
+      text-transform: uppercase;
+      color: var(--pb-ink);
+      margin: 6px 0 12px;
+      line-height: 1.05;
+    }
+    .profit-playbook-page .pi-step {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+      margin-bottom: 8px;
+    }
+    .profit-playbook-page .pi-step b {
+      width: 15px;
+      height: 15px;
+      border-radius: 4px;
+      background: var(--pb-red);
+      color: #fff;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: .5rem;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .profit-playbook-page .pi-step i {
+      height: 5px;
+      border-radius: 3px;
+      background: #e5ded4;
+      flex: 1;
+      font-style: normal;
+    }
+    .profit-playbook-page .pi-lines {
+      margin-top: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+    .profit-playbook-page .pi-lines i {
+      height: 4px;
+      border-radius: 2px;
+      background: #eee7dc;
+    }
+
+    /* form band + card */
+    .profit-playbook-page .formband {
+      background: #E4DFDB;
+      padding: .4rem 0 2.2rem;
+      border-bottom: 1px solid var(--pb-line);
+    }
+    .profit-playbook-page .form-card {
+      background: #fff;
+      border: 1px solid var(--pb-line);
+      border-radius: 12px;
+      padding: clamp(1.4rem, 4vw, 2rem);
+      max-width: 520px;
+      margin: 0 auto;
+      box-shadow: 0 16px 40px rgba(20, 15, 10, .06);
+    }
+    .profit-playbook-page .form-card .ft {
+      text-align: center;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 1.15rem;
+      text-transform: uppercase;
+      color: var(--pb-ink);
+      margin-bottom: 1.3rem;
+      letter-spacing: -.01em;
+    }
+
+    /* native form fields */
+    .profit-playbook-page .pb-field {
+      margin-bottom: .9rem;
+    }
+    .profit-playbook-page .pb-field label {
+      display: block;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: .72rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--pb-gray);
+      margin-bottom: .35rem;
+    }
+    .profit-playbook-page .pb-field input {
+      display: block;
+      width: 100%;
+      padding: .75rem .9rem;
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 1rem;
+      color: var(--pb-ink);
+      background: var(--pb-paper);
+      border: 1.5px solid var(--pb-line);
+      border-radius: 8px;
+      transition: border-color .15s, box-shadow .15s;
+      outline: none;
+    }
+    .profit-playbook-page .pb-field input:focus {
+      border-color: var(--pb-red);
+      box-shadow: 0 0 0 3px rgba(206, 17, 38, .15);
+    }
+    .profit-playbook-page .pb-field input[aria-invalid="true"] {
+      border-color: var(--pb-red);
+    }
+    .profit-playbook-page .pb-field .field-error {
+      display: block;
+      font-size: .78rem;
+      color: var(--pb-red);
+      margin-top: .25rem;
+      min-height: 0;
+    }
+
+    /* generic content sections */
+    .profit-playbook-page .sec {
+      padding: clamp(2.2rem, 5vw, 3.4rem) 0;
+    }
+    .profit-playbook-page .sec--band {
+      background: var(--pb-band);
+      border-top: 1px solid var(--pb-line);
+      border-bottom: 1px solid var(--pb-line);
+    }
+    .profit-playbook-page .sec h2 {
+      text-align: center;
+      font-size: clamp(1.5rem, 3.6vw, 2.1rem);
+      margin-bottom: .8rem;
+    }
+    .profit-playbook-page .sec .cen {
+      text-align: center;
+      color: var(--pb-gray);
+      max-width: 50ch;
+      margin: 0 auto 1.4rem;
+      font-size: 1.05rem;
+    }
+    .profit-playbook-page .blocktitle {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: 1.08rem;
+      color: var(--pb-ink);
+      margin: 1.4rem 0 .9rem;
+    }
+
+    /* leaking bucket visual */
+    .profit-playbook-page .bucket {
+      display: flex;
+      justify-content: center;
+      margin: 1.6rem 0;
+    }
+
+    /* authenticity */
+    .profit-playbook-page .auth p {
+      margin-bottom: 1rem;
+      font-size: 1.06rem;
+      color: var(--pb-gray);
+    }
+    .profit-playbook-page .auth .sig {
+      margin-top: 1.4rem;
+    }
+    .profit-playbook-page .auth .sig b {
+      display: block;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      color: var(--pb-ink);
+      text-transform: uppercase;
+      letter-spacing: .02em;
+      font-size: .95rem;
+    }
+    .profit-playbook-page .auth .sig span {
+      font-size: .9rem;
+      color: var(--pb-muted);
+    }
+    .profit-playbook-page .final-cta {
+      max-width: 520px;
+      margin: 1.8rem auto 0;
+    }
+
+    /* footer */
+    .profit-playbook-page footer {
+      background: var(--pb-ink);
+      color: #fff;
+      padding: 2.6rem 0 2.8rem;
+      text-align: center;
+    }
+    .profit-playbook-page .logo {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .profit-playbook-page .logo .mk {
+      width: 36px;
+      height: 36px;
+    }
+    .profit-playbook-page .logo .w1 {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      color: #fff;
+      line-height: .85;
+      display: block;
+    }
+    .profit-playbook-page .logo .w2 {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: .72rem;
+      letter-spacing: .42em;
+      color: var(--pb-red);
+      text-transform: uppercase;
+      display: block;
+      margin-top: 2px;
+    }
+    .profit-playbook-page .foot-legal {
+      color: rgba(255, 255, 255, .42);
+      font-size: .74rem;
+      max-width: 64ch;
+      margin: 1.4rem auto 0;
+      line-height: 1.65;
+    }
+
+    @media (max-width: 480px) {
+      .profit-playbook-page .pb-scene { width: 320px; transform: scale(.92); }
+    }
+  </style>
+
+  <!-- TRUST BAR -->
+  <div class="trustbar">
+    <div class="wrap">
+      <div class="stars">★★★★★</div>
+      <div class="trusttext">
+        <span class="avis"><span></span><span></span><span></span><span></span></span>
+        Trusted by 200+ hot tub store owners
+      </div>
+    </div>
+  </div>
+
+  <!-- INTRO -->
+  <section class="intro">
+    <div class="wrap">
+      <h1>(Free Download) The 2026 Hot Tub Store AI Profit Playbook — <span class="red">why your store is losing buyers</span>, and the system to start capturing them again</h1>
+      <p class="sub">A free playbook for hot tub store owners who are doing "ok" on paper — but haven't seen a real jump in buyers, sales, or profit in a long time.</p>
+    </div>
+  </section>
+
+  <!-- IF THIS SOUNDS LIKE YOU -->
+  <section class="sounds">
+    <div class="wrap">
+      <h3>If this sounds like you:</h3>
+      <ul class="clist">
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          You've got a good showroom and good tubs on the floor
+        </li>
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          You've run promos, maybe ads, even hired an agency
+        </li>
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          But sales still swing with the season and feel unpredictable
+        </li>
+      </ul>
+      <p class="kick">…then it's time to do something different. Something that works now, in 2026.</p>
+    </div>
+  </section>
+
+  <!-- BOOK MOCKUP -->
+  <section class="mock-sec">
+    <div class="pb-scene">
+      <div class="pb-book">
+        <div class="pb-cover">
+          <div class="pb-eyebrow"><i></i>Hot Tub Industry</div>
+          <div class="pb-title">
+            <span class="s">The 2026</span>
+            <span class="b">Profit</span>
+            <span class="w">Playbook</span>
+          </div>
+          <div class="pb-art">
+            <div class="pb-art-img"></div>
+            <div class="pb-tubs"><span></span><span></span><span></span><span></span></div>
+          </div>
+          <div class="pb-sub">A practical system to <b>capture more buyers</b>, book more appointments &amp; close more sales</div>
+          <div class="pb-by">
+            <span class="by">Hot Tub <span>Launch</span></span>
+            <span class="pb-icons"><i></i><i></i><i></i></span>
+          </div>
+        </div>
+      </div>
+      <div class="pb-inside">
+        <div class="pi-eye">Inside</div>
+        <div class="pi-h">What's leaking your sales</div>
+        <div class="pi-step"><b>1</b><i style="width:70%"></i></div>
+        <div class="pi-step"><b>2</b><i style="width:85%"></i></div>
+        <div class="pi-step"><b>3</b><i style="width:55%"></i></div>
+        <div class="pi-step"><b>4</b><i style="width:90%"></i></div>
+        <div class="pi-step"><b>5</b><i style="width:65%"></i></div>
+        <div class="pi-lines">
+          <i style="width:100%"></i><i style="width:90%"></i><i style="width:75%"></i><i style="width:60%"></i>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FORM — native, replaces GHL embed -->
+  <section class="formband">
+    <div class="wrap">
+      <div class="form-card" id="optin">
+        <div class="ft">Enter your info below to access</div>
+
+        <form action="/api/lead" method="POST" novalidate>
+
+          <!-- Hidden tracking fields -->
+          <input type="hidden" name="leadUuid" id="profitLeadUuid" value="" />
+          <input type="hidden" name="eventId" id="profitEventId" value="" />
+          <input type="hidden" name="fbp" id="profitFbp" value="" />
+          <input type="hidden" name="fbc" id="profitFbc" value="" />
+          <input type="hidden" name="fbclid" id="profitFbclid" value="" />
+          <input type="hidden" name="utmSource" id="profitUtmSource" value="" />
+          <input type="hidden" name="utmMedium" id="profitUtmMedium" value="" />
+          <input type="hidden" name="utmCampaign" id="profitUtmCampaign" value="" />
+          <input type="hidden" name="utmContent" id="profitUtmContent" value="" />
+          <input type="hidden" name="utmTerm" id="profitUtmTerm" value="" />
+          <input type="hidden" name="landingUrl" id="profitLandingUrl" value="" />
+
+          <div class="pb-field">
+            <label for="profitName">First Name</label>
+            <input id="profitName" name="name" type="text" required autocomplete="given-name" placeholder="Your first name" />
+            <span class="field-error" data-error-for="name"></span>
+          </div>
+
+          <div class="pb-field">
+            <label for="profitLastName">Last Name</label>
+            <input id="profitLastName" name="lastName" type="text" autocomplete="family-name" placeholder="Your last name" />
+          </div>
+
+          <div class="pb-field">
+            <label for="profitEmail">Email Address</label>
+            <input id="profitEmail" name="email" type="email" required autocomplete="email" placeholder="your@email.com" />
+            <span class="field-error" data-error-for="email"></span>
+          </div>
+
+          <div class="pb-field">
+            <label for="profitPhone">Phone Number (optional)</label>
+            <input id="profitPhone" name="phone" type="tel" autocomplete="tel" placeholder="(555) 000-0000" />
+          </div>
+
+          <button class="btn" type="submit" data-submit>Access the Playbook</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- REFRAME -->
+  <section class="sec">
+    <div class="wrap">
+      <h2>Most hot tub store owners think they need <span class="red">more traffic</span></h2>
+      <p class="cen">What we keep seeing, across hundreds of stores, is something very different.</p>
+      <div class="bucket">
+        <svg width="150" height="150" viewBox="0 0 150 150" fill="none">
+          <path d="M38 52h74l-8 68a6 6 0 0 1-6 5H52a6 6 0 0 1-6-5L38 52z" stroke="#0E0C0B" stroke-width="3"/>
+          <path d="M32 52h86" stroke="#0E0C0B" stroke-width="3" stroke-linecap="round"/>
+          <path d="M48 52c0-8 12-14 27-14s27 6 27 14" stroke="#0E0C0B" stroke-width="3"/>
+          <circle cx="66" cy="86" r="4" fill="#CE1126"/><circle cx="88" cy="98" r="4" fill="#CE1126"/><circle cx="75" cy="110" r="3.5" fill="#CE1126"/>
+          <path d="M66 96v14M88 108v12M75 120v10" stroke="#CE1126" stroke-width="3" stroke-linecap="round"/>
+          <path d="M60 30c0 4-4 4-4 8M75 24c0 5-5 5-5 10M90 30c0 4-4 4-4 8" stroke="#CE1126" stroke-width="2.4" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <p class="cen" style="margin-bottom:0">Your store is a bucket. Every buyer in your market is water being poured in — but the bucket has holes. More traffic just pours more water into a leaking bucket. First, you fix the holes.</p>
+
+      <div class="blocktitle">In this playbook, I'll show you:</div>
+      <ul class="clist">
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          The hidden leak that's quietly capping your sales
+        </li>
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          One move every store owner can make to capture more ready buyers fast
+        </li>
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          A simple 5-step system to turn website visitors into booked appointments
+        </li>
+      </ul>
+
+      <div class="blocktitle">Plus: the new-buyer sales system that leads to:</div>
+      <ul class="clist">
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          More appointments booked (so your showroom stays busy year-round)
+        </li>
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          More closed sales (so revenue stops swinging with the season)
+        </li>
+        <li>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="11" fill="#CE1126"/><path d="M7 12.5l3.2 3.2L17 9" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          More referrals (so you get more of the best buyers every month)
+        </li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- AUTHENTICITY -->
+  <section class="sec sec--band">
+    <div class="wrap auth">
+      <h2 style="text-align:left">To be clear… this isn't some 1-page, <span class="red">AI-generated download</span></h2>
+      <p>I put this together myself, pulling what's actually working right now across real hot tub stores — so you get the full system, not a page of random tips scraped off the internet.</p>
+      <p>You get the complete playbook. And you can unsubscribe from the list at any time.</p>
+      <p>If that sounds like a fair trade, drop your info and I'll send it straight to you.</p>
+      <div class="sig">
+        <b>Alex Cook</b>
+        <span>Founder · Hot Tub Launch</span>
+      </div>
+      <div class="final-cta"><a class="btn" href="#optin">Access the Playbook</a></div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <a class="logo" href="/">
+        <svg class="mk" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#FAF7F2" stroke-width="1.6"/><ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#FAF7F2" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="21" r="13" stroke="#FAF7F2" stroke-width="1.8"/><path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/></svg>
+        <span><span class="w1">Hot Tub</span><span class="w2">Launch</span></span>
+      </a>
+      <p class="foot-legal">This website is not endorsed by or affiliated with Facebook, Google, or YouTube in any way. Individual results presented here may not be typical. Your background, effort, and execution affect outcomes, and nothing here is a guarantee of any specific result. © 2026 Hot Tub Launch. All rights reserved.</p>
+    </div>
+  </footer>
+
+  <script is:inline>
+(function () {
+  const formEl = document.querySelector('.profit-playbook-page form');
+  if (!formEl) return;
+
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function value(name) {
+    const input = formEl.elements.namedItem(name);
+    return input instanceof HTMLInputElement ? input.value.trim() : '';
+  }
+
+  function setError(name, message) {
+    const input = formEl.elements.namedItem(name);
+    const slot = formEl.querySelector('[data-error-for="' + name + '"]');
+    if (input instanceof HTMLInputElement) {
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+    if (slot) slot.textContent = message;
+  }
+
+  function validate() {
+    const name = value('name');
+    const email = value('email');
+    const next = {
+      name: name.length >= 2 ? '' : 'Please enter your first name (at least 2 characters).',
+      email: emailRe.test(email) ? '' : 'Please enter a valid email address.',
+    };
+    setError('name', next.name);
+    setError('email', next.email);
+    return !next.name && !next.email;
+  }
+
+  // Capture tracking params from URL and cookies
+  function captureTracking() {
+    const params = new URLSearchParams(window.location.search);
+    function get(id) {
+      const el = document.getElementById(id);
+      return el instanceof HTMLInputElement ? el : null;
+    }
+
+    // leadUuid + eventId
+    var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
+    var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
+    if (!lu) {
+      lu = crypto.randomUUID
+        ? crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+      try { sessionStorage.setItem('lead_uuid', lu); } catch (e) {}
+    }
+    if (!ei) {
+      ei = crypto.randomUUID
+        ? crypto.randomUUID()
+        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+          });
+      try { sessionStorage.setItem('event_id', ei); } catch (e) {}
+    }
+
+    var hlu = get('profitLeadUuid'); if (hlu) hlu.value = lu;
+    var hei = get('profitEventId'); if (hei) hei.value = ei;
+
+    // UTMs
+    var utmFields = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'];
+    utmFields.forEach(function (f) {
+      var stored = null;
+      try { stored = sessionStorage.getItem(f); } catch (e) {}
+      var fromUrl = params.get(f);
+      var val = fromUrl || stored || '';
+      if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch (e) {} }
+      var h = get('profit' + f.charAt(0).toUpperCase() + f.slice(1));
+      if (h) h.value = val;
+    });
+
+    // fbclid
+    var fbclid = params.get('fbclid') || '';
+    var hfbclid = get('profitFbclid'); if (hfbclid) hfbclid.value = fbclid;
+
+    // fbp / fbc from Meta cookies
+    var fbp = '';
+    var fbc = '';
+    document.cookie.split('; ').forEach(function (c) {
+      if (c.startsWith('_fbp=')) fbp = c.slice(5);
+      if (c.startsWith('_fbc=')) fbc = c.slice(5);
+    });
+    var hfbp = get('profitFbp'); if (hfbp) hfbp.value = fbp;
+    var hfbc = get('profitFbc');
+    if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
+
+    // landing url
+    var landing = null;
+    try { landing = sessionStorage.getItem('landing_url'); } catch (e) {}
+    if (!landing) landing = window.location.href.split('?')[0];
+    try { if (!sessionStorage.getItem('landing_url')) sessionStorage.setItem('landing_url', landing); } catch (e) {}
+    var hl = get('profitLandingUrl'); if (hl) hl.value = landing;
+  }
+
+  // Run tracking capture on page load
+  captureTracking();
+
+  formEl.addEventListener('submit', function (event) {
+    if (!validate()) {
+      event.preventDefault();
+      return;
+    }
+
+    // Fire Pixel Lead event with matching event_id
+    var eidEl = document.getElementById('profitEventId');
+    var eid = eidEl instanceof HTMLInputElement ? eidEl.value : '';
+    if (typeof fbq === 'function' && eid) {
+      fbq('track', 'Lead', {}, { eventID: eid });
+    }
+
+    try {
+      sessionStorage.setItem('lead_name', value('name'));
+      sessionStorage.setItem('lead_email', value('email'));
+    } catch (err) {}
+
+    var button = formEl.querySelector('[data-submit]');
+    if (button instanceof HTMLButtonElement) {
+      button.disabled = true;
+    }
+  });
+})();
+  </script>
+</Layout>

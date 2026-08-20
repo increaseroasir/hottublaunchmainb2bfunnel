@@ -1,0 +1,113 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="You're All Set — Hot Tub Launch"
+  description="Everything you requested is on its way. Check your inbox."
+>
+  <meta name="robots" content="noindex, nofollow" />
+
+  <style is:global>
+  :root{
+    --cream:#FAF7F2; --paper:#FFFFFF; --ink:#191919; --ink-2:#211E1C;
+    --ink-soft:#3A3532; --muted:#6E655F; --muted-dark:#A79F97;
+    --red:#CE1126; --red-dark:#A80E1F; --line:#E7E0D6; --line-dark:rgba(250,247,242,.14);
+    --wrap:680px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--cream);color:var(--ink-soft);font-family:'Manrope',system-ui,sans-serif;
+    font-size:17px;line-height:1.6;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:1.2rem}
+  h1,h2{font-family:'Montserrat',sans-serif;text-transform:uppercase;color:var(--ink);
+    font-weight:900;line-height:1;letter-spacing:-.02em}
+  .red{color:var(--red)}
+  .eyebrow{display:inline-flex;align-items:center;gap:.6rem;font-family:'Montserrat',sans-serif;
+    font-weight:700;font-size:.7rem;letter-spacing:.2em;text-transform:uppercase;color:var(--ink)}
+  .eyebrow::before{content:"";width:3px;height:1.05em;background:var(--red);flex:none}
+  .btn{display:inline-flex;align-items:center;gap:.6rem;font-family:'Montserrat',sans-serif;
+    font-weight:800;font-size:.85rem;letter-spacing:.05em;text-transform:uppercase;
+    padding:1.05em 1.9em;border-radius:6px;background:var(--red);color:#fff;transition:.15s;line-height:1}
+  .btn:hover{background:var(--red-dark)}
+
+  /* delivery */
+  .delivery{text-align:center;padding:clamp(3.2rem,9vw,6rem) 0 clamp(2.6rem,6vw,4rem)}
+  .delivery h1{font-size:clamp(2.2rem,6.5vw,3.8rem);margin:1.2rem 0 1.4rem}
+  .delivery p{max-width:50ch;margin:0 auto;font-size:1.1rem}
+  .delivery .fine{margin-top:1rem;font-size:.95rem;color:var(--muted)}
+  .mailmark{margin:0 auto 1.6rem;width:64px;height:64px;border:2px solid var(--ink);border-radius:10px;
+    display:flex;align-items:center;justify-content:center}
+
+  /* booking band */
+  .book{background:var(--ink);color:var(--cream);padding:clamp(2.8rem,7vw,4.5rem) 0}
+  .book .eyebrow{color:var(--cream)}
+  .book h2{color:var(--cream);font-size:clamp(1.6rem,4vw,2.4rem);margin:1rem 0 1.1rem;letter-spacing:-.015em}
+  .book p{color:#E4DDD3;max-width:54ch;font-size:1.06rem;margin-bottom:.9rem}
+  .book p:last-of-type{margin-bottom:1.8rem}
+  .cal-shell{background:var(--ink-2);border:1px solid var(--line-dark);border-radius:10px;
+    padding:clamp(1.6rem,4vw,2.4rem);min-height:200px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center}
+  .cal-shell .btn{margin-top:1rem}
+
+  /* footer */
+  footer{background:var(--ink);border-top:1px solid var(--line-dark);padding:2.4rem 0 2.6rem;text-align:center}
+  .logo{display:inline-flex;align-items:center;gap:.6rem}
+  .logo .mk{width:34px;height:34px}
+  .logo .w1{font-family:'Montserrat';font-weight:800;font-size:1.05rem;letter-spacing:.02em;
+    text-transform:uppercase;color:var(--cream);line-height:.85;display:block;text-align:left}
+  .logo .w2{font-family:'Montserrat';font-weight:700;font-size:.66rem;letter-spacing:.42em;
+    color:var(--red);text-transform:uppercase;display:block;margin-top:2px;text-align:left}
+  .foot-legal{color:rgba(250,247,242,.42);font-size:.74rem;max-width:64ch;margin:1.3rem auto 0;line-height:1.65}
+
+  :focus-visible{outline:3px solid var(--red);outline-offset:3px;border-radius:2px}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+  </style>
+
+  <!-- ============ DELIVERY ============ -->
+  <section class="delivery">
+    <div class="wrap">
+      <div class="mailmark" aria-hidden="true">
+        <svg width="30" height="30" viewBox="0 0 24 24" fill="none">
+          <rect x="3" y="5.5" width="18" height="13" rx="2" stroke="#191919" stroke-width="1.8"/>
+          <path d="M4 7l8 6 8-6" stroke="#CE1126" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </div>
+      <span class="eyebrow">It's on the way</span>
+      <h1>You're all <span class="red">set</span>.</h1>
+      <p>Everything you requested is headed to your inbox right now. Give it five minutes. If it isn't there, check spam and promotions — then drag it to your inbox so the rest of our emails land where you'll see them.</p>
+      <p class="fine">Check your texts too.</p>
+    </div>
+  </section>
+
+  <!-- ============ BOOKING ============ -->
+  <section class="book">
+    <div class="wrap">
+      <span class="eyebrow">While you're here</span>
+      <h2>Want us to look at a store with you?</h2>
+      <p>The playbook shows you the system. A call shows you where a specific store is leaking buyers — speed, follow-up, message, clarity, proof. We walk the online presence together and you leave knowing exactly what's costing sales.</p>
+      <p>It's free, it's specific, and there's no pitch until you ask for one. Grab a time below.</p>
+
+      <div class="cal-shell">
+        <p style="color:#E4DDD3;font-size:1rem">Ready to put this into action for your store?</p>
+        <a class="btn" href="/apply">Book a strategy call →</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ FOOTER ============ -->
+  <footer>
+    <div class="wrap">
+      <a class="logo" href="/">
+        <svg class="mk" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+          <ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#FAF7F2" stroke-width="1.6"/>
+          <ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#FAF7F2" stroke-width="1.4" opacity=".5"/>
+          <circle cx="24" cy="21" r="13" stroke="#FAF7F2" stroke-width="1.8"/>
+          <path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/>
+        </svg>
+        <span><span class="w1">Hot Tub</span><span class="w2">Launch</span></span>
+      </a>
+      <p class="foot-legal">This website is not endorsed by or affiliated with Facebook, Google, or YouTube in any way. Individual results presented here may not be typical. Your background, effort, and execution affect outcomes, and nothing here is a guarantee of any specific result. © 2026 Hot Tub Launch. All rights reserved.</p>
+    </div>
+  </footer>
+</Layout>

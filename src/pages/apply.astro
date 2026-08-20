@@ -1,0 +1,763 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Apply for Your Market — Hot Tub Launch"
+  description="Apply for a quick call to see if your market is still open — and how we turn the buyers you've already earned into predictable sales. By application only, one store per market."
+  pageClass="apply-page"
+>
+  <style is:global>
+    /* ===== Apply page overrides & additions ===== */
+    .apply-page {
+      --cream: #FAF7F2; --paper: #FFFFFF; --ink: #191919; --ink-2: #211E1C;
+      --ink-soft: #3A3532; --muted: #6E655F; --muted-dark: #A79F97;
+      --red: #CE1126; --red-2: #F0475C; --red-dark: #A80E1F;
+      --line: #E7E0D6; --line-dark: rgba(250,247,242,.14);
+    }
+    .apply-page body {
+      font-size: 17px;
+    }
+    .apply-page .wrap {
+      max-width: 1180px;
+    }
+    .apply-page .eyebrow {
+      font-size: .7rem;
+    }
+    .apply-page .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+      cursor: pointer;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 1.05em 1.3em;
+      border-radius: 6px;
+      border: 0;
+      background: var(--red);
+      color: #fff;
+      transition: .15s;
+      line-height: 1.15;
+      box-shadow: none;
+    }
+    .apply-page .btn:hover {
+      background: var(--red-dark);
+      transform: translateY(-2px);
+    }
+
+    /* ---------- announcement + nav ---------- */
+    .announce {
+      background: var(--ink);
+      color: var(--cream);
+      text-align: center;
+      padding: .55rem 1rem;
+      font-size: .85rem;
+    }
+    .announce b {
+      color: var(--red-2);
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: .72rem;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      margin-right: .35rem;
+    }
+    .apply-page header {
+      background: var(--cream);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav {
+      display: flex;
+      align-items: center;
+      gap: 2rem;
+      padding-block: 1rem;
+    }
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: .6rem;
+      flex: none;
+    }
+    .logo .mk {
+      width: 34px;
+      height: 34px;
+    }
+    .logo .w1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: .95rem;
+      letter-spacing: .02em;
+      color: var(--ink);
+      text-transform: uppercase;
+      line-height: .9;
+      display: block;
+    }
+    .logo .w2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: .6rem;
+      letter-spacing: .4em;
+      color: var(--red);
+      text-transform: uppercase;
+      display: block;
+      margin-top: 2px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 1.6rem;
+      margin-left: auto;
+    }
+    .nav-links a {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: .74rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ink-soft);
+    }
+    .nav-links a:hover {
+      color: var(--ink);
+    }
+    .nav .cta {
+      flex: none;
+      background: var(--red);
+      color: #fff;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: .74rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      padding: .85em 1.4em;
+      border-radius: 3px;
+    }
+    .nav .cta:hover {
+      background: var(--red-dark);
+    }
+    .nav-phone {
+      display: none;
+      align-items: center;
+      gap: .45rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: .8rem;
+      letter-spacing: .02em;
+      color: var(--ink);
+      white-space: nowrap;
+    }
+    .nav-phone svg {
+      color: var(--red);
+    }
+
+    /* ---------- split hero ---------- */
+    .hero {
+      position: relative;
+    }
+    /* ink slab behind the right column on desktop */
+    .hero::after {
+      content: "";
+      position: absolute;
+      top: 0;
+      right: 0;
+      bottom: 0;
+      width: 44%;
+      background: var(--ink);
+      z-index: 0;
+    }
+    .hero .wrap {
+      position: relative;
+      z-index: 1;
+    }
+    .hero-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+      gap: clamp(2.5rem, 5vw, 5rem);
+      align-items: center;
+      padding-block: clamp(3rem, 6vw, 5.5rem);
+    }
+    .hero h1 {
+      font-family: 'Montserrat', sans-serif;
+      color: var(--ink);
+      text-transform: uppercase;
+      font-weight: 900;
+      line-height: 1.02;
+      letter-spacing: -.02em;
+      font-size: clamp(1.9rem, 3.4vw, 2.9rem);
+      margin-bottom: 1.2rem;
+    }
+    .hero .sub {
+      font-size: clamp(1.05rem, 1.4vw, 1.22rem);
+      font-weight: 500;
+      color: var(--ink-soft);
+      max-width: 44ch;
+      margin-bottom: 1.8rem;
+    }
+    .phone-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .8rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: .02em;
+      color: var(--ink);
+    }
+    .phone-chip .ic {
+      width: 44px;
+      height: 44px;
+      border-radius: 8px;
+      background: var(--red);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+    .phone-chip span {
+      border-bottom: 2px solid var(--red);
+      padding-bottom: 2px;
+    }
+    .hero-proof {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .8rem;
+      margin-top: 2.2rem;
+    }
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: .55rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: .66rem;
+      letter-spacing: .14em;
+      text-transform: uppercase;
+      color: var(--ink);
+      border: 1px solid var(--line);
+      border-radius: 2px;
+      padding: .5rem .85rem;
+      background: var(--paper);
+    }
+    .chip .dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 50%;
+      background: var(--red);
+      flex: none;
+    }
+
+    /* ---------- application panel ---------- */
+    .panel {
+      background: var(--ink);
+      border-radius: 10px;
+      padding: clamp(1.6rem, 3vw, 2.4rem);
+      box-shadow: 0 30px 60px rgba(20, 15, 10, .25);
+    }
+    .panel .pt {
+      text-align: center;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: 1.15rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      color: var(--cream);
+      margin-bottom: .5rem;
+    }
+    .panel .pt .red {
+      color: var(--red-2);
+    }
+    .panel .ps {
+      text-align: center;
+      font-size: .92rem;
+      color: var(--muted-dark);
+      max-width: 38ch;
+      margin: 0 auto 1.5rem;
+    }
+    .field {
+      margin-bottom: .95rem;
+    }
+    .field label {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: .68rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--cream);
+      margin-bottom: .4rem;
+    }
+    .field label .req {
+      color: var(--red-2);
+    }
+    .field input,
+    .field select {
+      width: 100%;
+      padding: .9em 1em;
+      border: 1.5px solid var(--line-dark);
+      border-radius: 7px;
+      font-family: 'Manrope', sans-serif;
+      font-size: 1rem;
+      color: var(--cream);
+      background: var(--ink-2);
+      transition: border-color .15s;
+    }
+    .field input::placeholder {
+      color: rgba(250, 247, 242, .35);
+    }
+    .field input:focus,
+    .field select:focus {
+      outline: none;
+      border-color: var(--red);
+    }
+    .field input.has-error {
+      border-color: var(--red-2);
+    }
+    .field select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A79F97' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1em center;
+    }
+    .field select:invalid {
+      color: rgba(250, 247, 242, .35);
+    }
+    .field select option {
+      color: var(--ink);
+      background: var(--cream);
+    }
+    .field-error {
+      display: block;
+      font-size: .75rem;
+      color: var(--red-2);
+      min-height: 1.2em;
+      margin-top: .3rem;
+    }
+    .privacy-note {
+      font-size: .78rem;
+      color: var(--muted-dark);
+      line-height: 1.6;
+      margin: .4rem 0 1.2rem;
+    }
+    .privacy-note a {
+      color: var(--cream);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    .panel .after {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      margin-top: 1rem;
+      font-size: .8rem;
+      color: var(--muted-dark);
+    }
+    .panel .after svg {
+      flex: none;
+    }
+
+    /* ---------- footer ---------- */
+    .apply-page footer {
+      background: var(--ink);
+      color: var(--cream);
+      margin-top: clamp(3rem, 6vw, 5rem);
+    }
+    .foot-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 5fr) minmax(0, 3fr) minmax(0, 3fr);
+      gap: 2.5rem;
+      padding-block: clamp(2.5rem, 5vw, 4rem);
+    }
+    .apply-page footer .logo .w1 {
+      color: var(--cream);
+    }
+    footer .about {
+      font-size: .92rem;
+      color: var(--muted-dark);
+      max-width: 38ch;
+      margin-top: 1rem;
+    }
+    .fcol h4 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: .66rem;
+      letter-spacing: .18em;
+      text-transform: uppercase;
+      color: var(--muted-dark);
+      margin-bottom: 1.1rem;
+    }
+    .fcol a {
+      display: block;
+      font-size: .95rem;
+      color: var(--cream);
+      opacity: .85;
+      padding-block: .3rem;
+    }
+    .fcol a:hover {
+      opacity: 1;
+    }
+    .foot-legal {
+      border-top: 1px solid var(--line-dark);
+      padding-block: 1.6rem;
+      font-size: .76rem;
+      color: rgba(250, 247, 242, .45);
+      line-height: 1.7;
+    }
+    .foot-legal a {
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+    :focus-visible {
+      outline: 3px solid var(--red);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * {
+        transition: none !important;
+      }
+    }
+
+    /* ---------- responsive ---------- */
+    @media (max-width: 980px) {
+      .nav-links {
+        display: none;
+      }
+      .nav-phone {
+        display: inline-flex;
+        margin-left: auto;
+      }
+      .nav {
+        gap: 1rem;
+      }
+      .nav .cta {
+        padding: .85em 1em;
+        font-size: .68rem;
+      }
+      .hero::after {
+        display: none;
+      }
+      .hero-grid {
+        grid-template-columns: 1fr;
+        gap: 2.4rem;
+        padding-block: 2.4rem;
+      }
+      .foot-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+      }
+    }
+  </style>
+
+  <!-- ANNOUNCEMENT -->
+  <div class="announce"><b>By Application Only</b> We partner with one hot tub store per market · A limited number of 2026 territories remain</div>
+
+  <!-- NAV -->
+  <header>
+    <div class="wrap">
+      <nav class="nav" aria-label="Main">
+        <a class="logo" href="/" aria-label="Hot Tub Launch home">
+          <svg class="mk" viewBox="0 0 48 48" fill="none" aria-hidden="true"><ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#191919" stroke-width="1.6"/><ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#191919" stroke-width="1.4" opacity=".6"/><circle cx="24" cy="21" r="13" stroke="#191919" stroke-width="1.8"/><path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/></svg>
+          <span><span class="w1">Hot Tub</span><span class="w2">Launch</span></span>
+        </a>
+        <div class="nav-links">
+          <a href="/#problem">The Problem</a>
+          <a href="/#system">The System</a>
+          <a href="/#accept">Who We Accept</a>
+          <a href="/#faq">FAQ</a>
+        </div>
+        <a class="nav-phone" href="tel:+1[[ PHONE-DIGITS ]]" aria-label="Call Hot Tub Launch">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>
+          [[ (555) 000-0000 ]]
+        </a>
+        <a class="cta" href="#apply">Apply for Your Market</a>
+      </nav>
+    </div>
+  </header>
+
+  <!-- SPLIT HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <div class="hero-grid">
+        <!-- LEFT: the pitch -->
+        <div>
+          <span class="eyebrow">By Application · One Store Per Market</span>
+          <h1>Your showroom should be full. Your pipeline <span class="red">should be too</span>.</h1>
+          <p class="sub">Apply for a quick call to see if your market is still open — and how we turn the buyers you've already earned into predictable sales. No hype. No pressure. Pricing after we confirm fit.</p>
+          <a class="phone-chip" href="tel:+1[[ PHONE-DIGITS ]]" aria-label="Call Hot Tub Launch">
+            <span class="ic"><svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" stroke="#fff" stroke-width="1.8" stroke-linejoin="round"/></svg></span>
+            <span>[[ (555) 000-0000 ]]</span>
+          </a>
+          <div class="hero-proof">
+            <span class="chip"><span class="dot"></span>Reviewed by hand</span>
+            <span class="chip"><span class="dot"></span>We reply within 2 business days</span>
+            <span class="chip"><span class="dot"></span>Free market audit first</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: application panel -->
+        <div class="panel" id="apply">
+          <div class="pt">Apply <span class="red">Here</span></div>
+          <p class="ps">Two minutes. We'll check your territory and come back to you personally.</p>
+
+          <form id="applyForm" action="/api/lead" method="POST" novalidate>
+            <!-- Hidden tracking fields -->
+            <input type="hidden" name="leadUuid" id="leadUuid" value="" />
+            <input type="hidden" name="eventId" id="eventId" value="" />
+            <input type="hidden" name="fbp" id="fbp" value="" />
+            <input type="hidden" name="fbc" id="fbc" value="" />
+            <input type="hidden" name="fbclid" id="fbclid" value="" />
+            <input type="hidden" name="utmSource" id="utmSource" value="" />
+            <input type="hidden" name="utmMedium" id="utmMedium" value="" />
+            <input type="hidden" name="utmCampaign" id="utmCampaign" value="" />
+            <input type="hidden" name="utmContent" id="utmContent" value="" />
+            <input type="hidden" name="utmTerm" id="utmTerm" value="" />
+            <input type="hidden" name="landingUrl" id="landingUrl" value="" />
+            <input type="hidden" name="quizAnswers" id="quizAnswers" value="" />
+
+            <!-- First Name → server "name" -->
+            <div class="field">
+              <label for="f-first">First Name <span class="req">*</span></label>
+              <input id="f-first" type="text" name="name" placeholder="First Name" autocomplete="given-name" required />
+              <span class="field-error" data-error-for="name"></span>
+            </div>
+
+            <!-- Last Name → server "lastName" -->
+            <div class="field">
+              <label for="f-last">Last Name <span class="req">*</span></label>
+              <input id="f-last" type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required />
+              <span class="field-error" data-error-for="lastName"></span>
+            </div>
+
+            <!-- Email -->
+            <div class="field">
+              <label for="f-email">Email <span class="req">*</span></label>
+              <input id="f-email" type="email" name="email" placeholder="you@yourstore.com" autocomplete="email" required />
+              <span class="field-error" data-error-for="email"></span>
+            </div>
+
+            <!-- Phone -->
+            <div class="field">
+              <label for="f-phone">Mobile Phone Number <span class="req">*</span></label>
+              <input id="f-phone" type="tel" name="phone" placeholder="+1 (555) 000-0000" autocomplete="tel" required />
+              <span class="field-error" data-error-for="phone"></span>
+            </div>
+
+            <!-- Role (select) -->
+            <div class="field">
+              <label for="f-role">Tell Us About Yourself <span class="req">*</span></label>
+              <select id="f-role" name="role" required>
+                <option value="" disabled selected>I am…</option>
+                <option>I own a hot tub store</option>
+                <option>I manage a hot tub store</option>
+                <option>I'm opening a hot tub store</option>
+                <option>Other</option>
+              </select>
+              <span class="field-error" data-error-for="role"></span>
+            </div>
+
+            <p class="privacy-note">Hot Tub Launch will use your contact information to review your application and reply about your market. You can unsubscribe at any time. See our <a href="/privacy">Privacy Policy</a> for details.</p>
+
+            <button class="btn" type="submit" data-submit>Apply for Your Market</button>
+          </form>
+
+          <div class="after">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none"><circle cx="12" cy="12" r="10" stroke="#A79F97" stroke-width="1.8"/><path d="M12 7v5l3 3" stroke="#A79F97" stroke-width="1.8" stroke-linecap="round"/></svg>
+            Reviewed by hand. We reply within 2 business days.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap">
+      <div class="foot-grid">
+        <div>
+          <a class="logo" href="/" aria-label="Hot Tub Launch home">
+            <svg class="mk" viewBox="0 0 48 48" fill="none" aria-hidden="true"><ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#FAF7F2" stroke-width="1.6"/><ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#FAF7F2" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="21" r="13" stroke="#FAF7F2" stroke-width="1.8"/><path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/></svg>
+            <span><span class="w1">Hot Tub</span><span class="w2">Launch</span></span>
+          </a>
+          <p class="about">The growth system built exclusively for independent hot tub stores. One store per market — by application only.</p>
+          <p class="about" style="margin-top:.6rem">[[ (555) 000-0000 ]]</p>
+        </div>
+        <div class="fcol">
+          <h4>Company</h4>
+          <a href="/#system">The System</a>
+          <a href="/#accept">Who We Accept</a>
+          <a href="/#faq">FAQ</a>
+        </div>
+        <div class="fcol">
+          <h4>Get Started</h4>
+          <a href="/playbook">Profit Playbook</a>
+          <a href="/apply">Apply for Your Market</a>
+          <a href="/audit">Free Market Audit</a>
+        </div>
+      </div>
+      <div class="foot-legal">
+        Hot Tub Launch partners with a limited number of independent hot tub stores. Results depend on your market, your team, and execution, and nothing on this page is a guarantee of any specific outcome. Pricing is shared after a fit is confirmed.<br />
+        © 2026 Hot Tub Launch. All rights reserved. · <a href="/privacy">Privacy</a> · <a href="/terms">Terms</a>
+      </div>
+    </div>
+  </footer>
+
+  <script is:inline>
+    (function () {
+      var formEl = document.getElementById('applyForm');
+      if (!formEl) return;
+
+      var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      var phoneRe = /[0-9]{10,}/; // at least 10 digits anywhere
+
+      function value(name) {
+        var input = formEl.elements.namedItem(name);
+        return (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) ? input.value.trim() : '';
+      }
+
+      function setError(name, message) {
+        var input = formEl.elements.namedItem(name);
+        var slot = formEl.querySelector('[data-error-for="' + name + '"]');
+        if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) {
+          if (input.tagName === 'SELECT') {
+            input.style.borderColor = message ? '#F0475C' : '';
+          } else {
+            input.classList.toggle('has-error', !!message);
+          }
+        }
+        if (slot) slot.textContent = message;
+      }
+
+      function validate() {
+        var firstName = value('name');
+        var lastName = value('lastName');
+        var email = value('email');
+        var phone = value('phone');
+        var role = value('role');
+
+        var eName = firstName.length >= 2 ? '' : 'First name is required (at least 2 characters).';
+        var eLast = lastName.length >= 2 ? '' : 'Last name is required (at least 2 characters).';
+        var eEmail = emailRe.test(email) ? '' : 'Please enter a valid email address.';
+        var ePhone = phoneRe.test(phone) ? '' : 'Please enter a valid phone number (at least 10 digits).';
+        var eRole = role ? '' : 'Please select your role.';
+
+        setError('name', eName);
+        setError('lastName', eLast);
+        setError('email', eEmail);
+        setError('phone', ePhone);
+        setError('role', eRole);
+
+        return !eName && !eLast && !eEmail && !ePhone && !eRole;
+      }
+
+      // Capture tracking params from URL and cookies
+      function captureTracking() {
+        var params = new URLSearchParams(window.location.search);
+
+        function getHidden(id) {
+          var el = document.getElementById(id);
+          return el instanceof HTMLInputElement ? el : null;
+        }
+
+        // leadUuid + eventId
+        var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
+        var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
+        if (!lu) {
+          lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+          try { sessionStorage.setItem('lead_uuid', lu); } catch (e) {}
+        }
+        if (!ei) {
+          ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+          try { sessionStorage.setItem('event_id', ei); } catch (e) {}
+        }
+
+        var hlu = getHidden('leadUuid'); if (hlu) hlu.value = lu;
+        var hei = getHidden('eventId'); if (hei) hei.value = ei;
+
+        // UTMs
+        var utmFields = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'];
+        utmFields.forEach(function (f) {
+          var stored = null;
+          try { stored = sessionStorage.getItem(f); } catch (e) {}
+          var fromUrl = params.get(f);
+          var val = fromUrl || stored || '';
+          if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch (e) {} }
+          var h = getHidden(f); if (h) h.value = val;
+        });
+
+        // fbclid
+        var fbclid = params.get('fbclid') || '';
+        var hfbclid = getHidden('fbclid'); if (hfbclid) hfbclid.value = fbclid;
+
+        // fbp / fbc from Meta cookies
+        var fbp = '';
+        var fbc = '';
+        try {
+          document.cookie.split('; ').forEach(function (c) {
+            if (c.startsWith('_fbp=')) fbp = c.slice(5);
+            if (c.startsWith('_fbc=')) fbc = c.slice(5);
+          });
+        } catch (e) {}
+        var hfbp = getHidden('fbp'); if (hfbp) hfbp.value = fbp;
+        var hfbc = getHidden('fbc'); if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
+
+        // landing url
+        var landing = '';
+        try { landing = sessionStorage.getItem('landing_url'); } catch (e) {}
+        if (!landing) {
+          landing = window.location.href.split('?')[0];
+          try { sessionStorage.setItem('landing_url', landing); } catch (e) {}
+        }
+        var hl = getHidden('landingUrl'); if (hl) hl.value = landing;
+      }
+
+      // Capture quiz answers from session storage
+      function captureQuizAnswers() {
+        var answers = {};
+        var quizKeys = ['hasShowroom', 'monthlyVolume', 'challenge'];
+        quizKeys.forEach(function (k) {
+          var v = null;
+          try { v = sessionStorage.getItem(k); } catch (e) {}
+          if (v) answers[k] = v;
+        });
+        if (Object.keys(answers).length > 0) {
+          var h = document.getElementById('quizAnswers');
+          if (h instanceof HTMLInputElement) h.value = JSON.stringify(answers);
+        }
+      }
+
+      // Run tracking capture on page load
+      captureTracking();
+
+      formEl.addEventListener('submit', function (event) {
+        captureQuizAnswers();
+
+        if (!validate()) {
+          event.preventDefault();
+          return;
+        }
+
+        // Fire Pixel Lead event with matching event_id for deduplication
+        var eid = (document.getElementById('eventId') instanceof HTMLInputElement)
+          ? document.getElementById('eventId').value : '';
+        if (typeof fbq === 'function' && eid) {
+          fbq('track', 'Lead', {}, {eventID: eid});
+        }
+
+        // Persist lead info in session
+        try {
+          sessionStorage.setItem('lead_name', value('name'));
+          sessionStorage.setItem('lead_email', value('email'));
+        } catch (err) {}
+
+        // Disable button to prevent double submit
+        var button = formEl.querySelector('[data-submit]');
+        if (button instanceof HTMLButtonElement) {
+          button.disabled = true;
+        }
+      });
+    })();
+  </script>
+</Layout>

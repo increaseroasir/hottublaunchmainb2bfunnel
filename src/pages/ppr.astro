@@ -3,7 +3,7 @@ import Layout from '../layouts/Layout.astro';
 ---
 
 <Layout
-  title="Check Your Market — Hot Tub Launch"
+  title="Hot Tub Launch — One Store Per Market"
   description="We take one hot tub store per market. Zero setup fees. Full done-for-you sales growth system. One flat monthly price."
   pageClass="ppr-page"
   robots="index, follow"
@@ -86,66 +86,20 @@ import Layout from '../layouts/Layout.astro';
     .ppr-hero .disclaimer {
       font-size: .72rem;
       color: var(--ppr-muted);
-      margin-bottom: 1.8rem;
+      text-align: center;
+      max-width: 52ch;
+      margin: 0 auto 1.8rem;
     }
-    .ppr-hero .disclaimer .asterisk { color: var(--ppr-red); }
-
-    /* ---------- OFFER BULLETS ---------- */
-    .offer-list {
-      list-style: none;
-      padding: 0;
-      margin: 0 auto 2rem;
-      max-width: 54ch;
-      text-align: left;
-    }
-    .offer-list li {
-      display: flex;
-      gap: .7rem;
-      align-items: flex-start;
-      font-size: 1rem;
-      color: var(--ppr-gray);
-      padding: .45rem 0;
-    }
-    .offer-list li .check {
-      flex: none;
-      width: 22px;
-      height: 22px;
-      border-radius: 50%;
-      background: var(--ppr-red);
-      color: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: .65rem;
-      font-weight: 900;
-      margin-top: .1em;
-    }
+    .ppr-hero .disclaimer .asterisk { color: var(--ppr-red); font-style: italic; }
 
     /* ---------- FORM CARD ---------- */
     .form-card {
-      background: var(--ppr-white);
-      border: 1px solid var(--ppr-line);
-      border-radius: 12px;
-      padding: clamp(1.5rem, 4vw, 2.2rem);
+      background: transparent;
+      border: 0;
+      padding: 0;
       max-width: 500px;
       margin: 0 auto;
-      box-shadow: 0 16px 40px rgba(20,15,10,.08);
       text-align: left;
-    }
-    .form-card .ft {
-      text-align: center;
-      font-family: 'Montserrat', system-ui, sans-serif;
-      font-weight: 900;
-      font-size: 1.15rem;
-      text-transform: uppercase;
-      color: var(--ppr-ink);
-      margin-bottom: .3rem;
-    }
-    .form-card .fs {
-      text-align: center;
-      font-size: .9rem;
-      color: var(--ppr-muted);
-      margin-bottom: 1.3rem;
     }
 
     /* ---------- FORM FIELDS ---------- */
@@ -288,19 +242,6 @@ import Layout from '../layouts/Layout.astro';
       transform: none;
     }
 
-    /* ---------- POST-FOOTER ---------- */
-    .ppr-footer {
-      text-align: center;
-      font-size: .72rem;
-      color: var(--ppr-muted);
-      padding: 1rem 1.2rem 2.5rem;
-    }
-    .ppr-footer a {
-      color: var(--ppr-gray);
-      text-decoration: underline;
-      text-underline-offset: 2px;
-    }
-
     :focus-visible {
       outline: 3px solid var(--ppr-red);
       outline-offset: 3px;
@@ -336,11 +277,8 @@ import Layout from '../layouts/Layout.astro';
 
     <!-- ===== FORM ===== -->
     <div class="form-card">
-      <div class="ft">Check Your Market</div>
-      <p class="fs">30 seconds. We'll confirm if your territory is still open.</p>
 
       <form id="pprForm" action="/api/lead" method="POST" novalidate>
-        <!-- Hidden tracking fields -->
         <input type="hidden" name="leadUuid" id="leadUuid" value="" />
         <input type="hidden" name="eventId" id="eventId" value="" />
         <input type="hidden" name="fbp" id="fbp" value="" />
@@ -387,13 +325,6 @@ import Layout from '../layouts/Layout.astro';
           <label for="f-store">Store Name <span class="req">*</span></label>
           <input id="f-store" type="text" name="businessName" placeholder="Your hot tub store name" required />
           <span class="field-error" data-error-for="businessName"></span>
-        </div>
-
-        <!-- City -->
-        <div class="ppr-field">
-          <label for="f-city">City <span class="req">*</span></label>
-          <input id="f-city" type="text" name="city" placeholder="What city is your store in?" required />
-          <span class="field-error" data-error-for="city"></span>
         </div>
 
         <!-- State -->
@@ -450,14 +381,8 @@ import Layout from '../layouts/Layout.astro';
           <label for="f-terms">I agree to terms &amp; conditions provided by Hot Tub Launch. By providing my phone number and email, I agree to receive messages from Hot Tub Launch regarding my application.</label>
         </div>
 
-        <button class="ppr-btn" type="submit" data-submit>Check Your Market →</button>
+        <button class="ppr-btn" type="submit" data-submit>Apply For Your Market →</button>
       </form>
-    </div>
-
-    <!-- ===== FOOTER ===== -->
-    <div class="ppr-footer">
-      By submitting this form you agree to our <a href="/privacy">Privacy Policy</a>.<br />
-      Hot Tub Launch · (979) 459-9221 · One store per market, by application only.
     </div>
   </div>
 
@@ -494,7 +419,6 @@ import Layout from '../layouts/Layout.astro';
         var email = value('email');
         var phone = value('phone');
         var businessName = value('businessName');
-        var city = value('city');
         var state = value('state');
         var isOwner = value('isOwner');
         var monthlyVolume = value('monthlyVolume');
@@ -505,7 +429,6 @@ import Layout from '../layouts/Layout.astro';
         var eEmail = emailRe.test(email) ? '' : 'Enter a valid email address.';
         var ePhone = phoneRe.test(phone) ? '' : 'Enter a valid phone number.';
         var eBusiness = businessName ? '' : 'Store name is required.';
-        var eCity = city ? '' : 'City is required.';
         var eState = state ? '' : 'Select your state.';
         var eOwner = isOwner ? '' : 'Select an option.';
         var eVolume = monthlyVolume ? '' : 'Select an option.';
@@ -515,10 +438,9 @@ import Layout from '../layouts/Layout.astro';
         setError('email', eEmail);
         setError('phone', ePhone);
         setError('businessName', eBusiness);
-        setError('city', eCity);
         setError('state', eState);
 
-        return !eName && !eLast && !eEmail && !ePhone && !eBusiness && !eCity && !eState && !eOwner && !eVolume && terms;
+        return !eName && !eLast && !eEmail && !ePhone && !eBusiness && !eState && !eOwner && !eVolume && terms;
       }
 
       function captureTracking() {

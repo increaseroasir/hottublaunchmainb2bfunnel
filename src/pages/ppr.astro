@@ -1,0 +1,607 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Check Your Market — Hot Tub Launch"
+  description="We take one hot tub store per market. Zero setup fees. Full done-for-you sales growth system. One flat monthly price."
+  pageClass="ppr-page"
+  robots="index, follow"
+>
+  <style is:global>
+    /* ===== PPR — ONE STORE PER MARKET / PAY-ONLY-FOR-RESULTS LANDING PAGE ===== */
+    .ppr-page {
+      --ppr-white: #FFFFFF;
+      --ppr-ink: #0E0C0B;
+      --ppr-gray: #3A3532;
+      --ppr-muted: #6E655F;
+      --ppr-muted-dk: #A79F97;
+      --ppr-red: #CE1126;
+      --ppr-red-dk: #A80E1F;
+      --ppr-line: #E0DAD0;
+      --ppr-warn-bg: #FFD84D;
+      --ppr-warn-text: #1A1500;
+      --ppr-wrap: 680px;
+    }
+
+    .ppr-page body {
+      margin: 0;
+      background: var(--ppr-white);
+      color: var(--ppr-gray);
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .ppr-page * { box-sizing: border-box; }
+
+    /* ---------- YELLOW WARNING BANNER ---------- */
+    .warn-banner {
+      background: var(--ppr-warn-bg);
+      color: var(--ppr-warn-text);
+      text-align: center;
+      padding: 1rem clamp(1rem, 3vw, 2rem);
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 800;
+      font-size: clamp(.7rem, 1.4vw, .85rem);
+      letter-spacing: .03em;
+      line-height: 1.3;
+    }
+    .warn-banner .emoji {
+      font-size: 1.1em;
+      margin-right: .3em;
+    }
+
+    /* ---------- MAIN CONTENT ---------- */
+    .ppr-wrap {
+      max-width: var(--ppr-wrap);
+      margin: 0 auto;
+      padding: clamp(2rem, 5vw, 3.5rem) 1.2rem clamp(3rem, 6vw, 4rem);
+      text-align: center;
+    }
+
+    /* ---------- HERO ---------- */
+    .ppr-hero h1 {
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 900;
+      text-transform: uppercase;
+      line-height: 1.02;
+      letter-spacing: -.02em;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      color: var(--ppr-ink);
+      margin-bottom: .5rem;
+    }
+    .ppr-hero h1 .highlight {
+      color: var(--ppr-red);
+      text-decoration: underline;
+      text-underline-offset: 4px;
+    }
+    .ppr-hero .sub {
+      font-size: clamp(1rem, 1.8vw, 1.2rem);
+      font-weight: 500;
+      color: var(--ppr-gray);
+      max-width: 52ch;
+      margin: 0 auto 1.8rem;
+    }
+    .ppr-hero .disclaimer {
+      font-size: .72rem;
+      color: var(--ppr-muted);
+      margin-bottom: 1.8rem;
+    }
+    .ppr-hero .disclaimer .asterisk { color: var(--ppr-red); }
+
+    /* ---------- OFFER BULLETS ---------- */
+    .offer-list {
+      list-style: none;
+      padding: 0;
+      margin: 0 auto 2rem;
+      max-width: 54ch;
+      text-align: left;
+    }
+    .offer-list li {
+      display: flex;
+      gap: .7rem;
+      align-items: flex-start;
+      font-size: 1rem;
+      color: var(--ppr-gray);
+      padding: .45rem 0;
+    }
+    .offer-list li .check {
+      flex: none;
+      width: 22px;
+      height: 22px;
+      border-radius: 50%;
+      background: var(--ppr-red);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: .65rem;
+      font-weight: 900;
+      margin-top: .1em;
+    }
+
+    /* ---------- FORM CARD ---------- */
+    .form-card {
+      background: var(--ppr-white);
+      border: 1px solid var(--ppr-line);
+      border-radius: 12px;
+      padding: clamp(1.5rem, 4vw, 2.2rem);
+      max-width: 500px;
+      margin: 0 auto;
+      box-shadow: 0 16px 40px rgba(20,15,10,.08);
+      text-align: left;
+    }
+    .form-card .ft {
+      text-align: center;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 1.15rem;
+      text-transform: uppercase;
+      color: var(--ppr-ink);
+      margin-bottom: .3rem;
+    }
+    .form-card .fs {
+      text-align: center;
+      font-size: .9rem;
+      color: var(--ppr-muted);
+      margin-bottom: 1.3rem;
+    }
+
+    /* ---------- FORM FIELDS ---------- */
+    .ppr-field {
+      margin-bottom: .9rem;
+    }
+    .ppr-field label {
+      display: block;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: .7rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ppr-gray);
+      margin-bottom: .35rem;
+    }
+    .ppr-field label .req { color: var(--ppr-red); }
+    .ppr-field input,
+    .ppr-field select {
+      display: block;
+      width: 100%;
+      padding: .8rem .9rem;
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: .95rem;
+      color: var(--ppr-ink);
+      background: #F8F6F2;
+      border: 1.5px solid var(--ppr-line);
+      border-radius: 8px;
+      outline: none;
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .ppr-field input::placeholder { color: var(--ppr-muted-dk); }
+    .ppr-field input:focus,
+    .ppr-field select:focus {
+      border-color: var(--ppr-red);
+      box-shadow: 0 0 0 3px rgba(206,17,38,.12);
+    }
+    .ppr-field input[aria-invalid="true"],
+    .ppr-field select[aria-invalid="true"] {
+      border-color: var(--ppr-red);
+    }
+    .ppr-field .field-error {
+      display: block;
+      font-size: .75rem;
+      color: var(--ppr-red);
+      margin-top: .25rem;
+      min-height: 0;
+    }
+    .ppr-field select {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23A79F97' stroke-width='1.6' fill='none'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1em center;
+    }
+    .ppr-field select:invalid { color: var(--ppr-muted-dk); }
+    .ppr-field select option { color: var(--ppr-ink); background: #fff; }
+
+    /* ---------- RADIO GROUP ---------- */
+    .radio-group {
+      margin-bottom: .9rem;
+    }
+    .radio-group .rg-label {
+      display: block;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 700;
+      font-size: .7rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--ppr-gray);
+      margin-bottom: .5rem;
+    }
+    .radio-group .rg-label .req { color: var(--ppr-red); }
+    .radio-options {
+      display: flex;
+      gap: .8rem;
+      flex-wrap: wrap;
+    }
+    .radio-option {
+      display: flex;
+      align-items: center;
+      gap: .4rem;
+      font-size: .9rem;
+      color: var(--ppr-gray);
+    }
+    .radio-option input[type="radio"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ppr-red);
+    }
+
+    /* ---------- PRIVACY / CHECKBOX ---------- */
+    .ppr-check {
+      display: flex;
+      align-items: flex-start;
+      gap: .6rem;
+      margin: .8rem 0 1.2rem;
+    }
+    .ppr-check input[type="checkbox"] {
+      width: 16px;
+      height: 16px;
+      accent-color: var(--ppr-red);
+      flex: none;
+      margin-top: .15em;
+    }
+    .ppr-check label {
+      font-size: .72rem;
+      color: var(--ppr-muted);
+      line-height: 1.5;
+    }
+
+    /* ---------- CTA BUTTON ---------- */
+    .ppr-btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: .5rem;
+      width: 100%;
+      cursor: pointer;
+      font-family: 'Montserrat', system-ui, sans-serif;
+      font-weight: 900;
+      font-size: 1rem;
+      letter-spacing: .04em;
+      text-transform: uppercase;
+      padding: 1.05em 1.3em;
+      border-radius: 6px;
+      border: 0;
+      background: var(--ppr-red);
+      color: #fff;
+      transition: .15s;
+      line-height: 1.15;
+      box-shadow: 0 12px 28px rgba(206,17,38,.3);
+    }
+    .ppr-btn:hover {
+      background: var(--ppr-red-dk);
+      transform: translateY(-2px);
+    }
+    .ppr-btn:disabled {
+      opacity: .6;
+      cursor: default;
+      transform: none;
+    }
+
+    /* ---------- POST-FOOTER ---------- */
+    .ppr-footer {
+      text-align: center;
+      font-size: .72rem;
+      color: var(--ppr-muted);
+      padding: 1rem 1.2rem 2.5rem;
+    }
+    .ppr-footer a {
+      color: var(--ppr-gray);
+      text-decoration: underline;
+      text-underline-offset: 2px;
+    }
+
+    :focus-visible {
+      outline: 3px solid var(--ppr-red);
+      outline-offset: 3px;
+      border-radius: 2px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+      * { transition: none !important; }
+      .ppr-btn:hover { transform: none; }
+    }
+  </style>
+
+  <!-- ===== YELLOW WARNING BANNER ===== -->
+  <div class="warn-banner">
+    <span class="emoji">⚠️</span>
+    WARNING: We Only Take ONE Hot Tub Store Per Market — Most Territories Are Already Claimed
+  </div>
+
+  <!-- ===== HERO ===== -->
+  <div class="ppr-wrap">
+    <div class="ppr-hero">
+      <h1>
+        ZERO SETUP FEES.<br />
+        FULL DONE-FOR-YOU SALES GROWTH SYSTEM.<br />
+        ONE FLAT <span class="highlight">MONTHLY</span>.
+      </h1>
+      <p class="sub">
+        We rebuild your website, run the ads, handle every inbound call and text, and book showroom appointments. You focus on selling and installs.
+      </p>
+      <p class="disclaimer">
+        <span class="asterisk">*</span> Complete our quick 30-second form now to discover more about our special, time-sensitive offer. <span class="asterisk">*</span>
+      </p>
+    </div>
+
+    <!-- ===== FORM ===== -->
+    <div class="form-card">
+      <div class="ft">Check Your Market</div>
+      <p class="fs">30 seconds. We'll confirm if your territory is still open.</p>
+
+      <form id="pprForm" action="/api/lead" method="POST" novalidate>
+        <!-- Hidden tracking fields -->
+        <input type="hidden" name="leadUuid" id="leadUuid" value="" />
+        <input type="hidden" name="eventId" id="eventId" value="" />
+        <input type="hidden" name="fbp" id="fbp" value="" />
+        <input type="hidden" name="fbc" id="fbc" value="" />
+        <input type="hidden" name="fbclid" id="fbclid" value="" />
+        <input type="hidden" name="utmSource" id="utmSource" value="" />
+        <input type="hidden" name="utmMedium" id="utmMedium" value="" />
+        <input type="hidden" name="utmCampaign" id="utmCampaign" value="" />
+        <input type="hidden" name="utmContent" id="utmContent" value="" />
+        <input type="hidden" name="utmTerm" id="utmTerm" value="" />
+        <input type="hidden" name="landingUrl" id="landingUrl" value="" />
+        <input type="hidden" name="quizAnswers" id="quizAnswers" value="" />
+
+        <!-- First Name -->
+        <div class="ppr-field">
+          <label for="f-first">First Name <span class="req">*</span></label>
+          <input id="f-first" type="text" name="name" placeholder="Your first name" autocomplete="given-name" required />
+          <span class="field-error" data-error-for="name"></span>
+        </div>
+
+        <!-- Last Name -->
+        <div class="ppr-field">
+          <label for="f-last">Last Name <span class="req">*</span></label>
+          <input id="f-last" type="text" name="lastName" placeholder="Your last name" autocomplete="family-name" required />
+          <span class="field-error" data-error-for="lastName"></span>
+        </div>
+
+        <!-- Email -->
+        <div class="ppr-field">
+          <label for="f-email">Email <span class="req">*</span></label>
+          <input id="f-email" type="email" name="email" placeholder="you@yourstore.com" autocomplete="email" required />
+          <span class="field-error" data-error-for="email"></span>
+        </div>
+
+        <!-- Phone -->
+        <div class="ppr-field">
+          <label for="f-phone">Mobile Phone Number <span class="req">*</span></label>
+          <input id="f-phone" type="tel" name="phone" placeholder="+1 (979) 459-9221" autocomplete="tel" required />
+          <span class="field-error" data-error-for="phone"></span>
+        </div>
+
+        <!-- Store name -->
+        <div class="ppr-field">
+          <label for="f-store">Store Name <span class="req">*</span></label>
+          <input id="f-store" type="text" name="businessName" placeholder="Your hot tub store name" required />
+          <span class="field-error" data-error-for="businessName"></span>
+        </div>
+
+        <!-- City -->
+        <div class="ppr-field">
+          <label for="f-city">City <span class="req">*</span></label>
+          <input id="f-city" type="text" name="city" placeholder="What city is your store in?" required />
+          <span class="field-error" data-error-for="city"></span>
+        </div>
+
+        <!-- State -->
+        <div class="ppr-field">
+          <label for="f-state">What State Is Your Store Located In? <span class="req">*</span></label>
+          <select id="f-state" name="state" required>
+            <option value="" disabled selected>Select state</option>
+            <option>AL</option><option>AK</option><option>AZ</option><option>AR</option><option>CA</option>
+            <option>CO</option><option>CT</option><option>DE</option><option>FL</option><option>GA</option>
+            <option>HI</option><option>ID</option><option>IL</option><option>IN</option><option>IA</option>
+            <option>KS</option><option>KY</option><option>LA</option><option>ME</option><option>MD</option>
+            <option>MA</option><option>MI</option><option>MN</option><option>MS</option><option>MO</option>
+            <option>MT</option><option>NE</option><option>NV</option><option>NH</option><option>NJ</option>
+            <option>NM</option><option>NY</option><option>NC</option><option>ND</option><option>OH</option>
+            <option>OK</option><option>OR</option><option>PA</option><option>RI</option><option>SC</option>
+            <option>SD</option><option>TN</option><option>TX</option><option>UT</option><option>VT</option>
+            <option>VA</option><option>WA</option><option>WV</option><option>WI</option><option>WY</option>
+          </select>
+          <span class="field-error" data-error-for="state"></span>
+        </div>
+
+        <!-- Are you a hot tub store owner? -->
+        <div class="radio-group">
+          <div class="rg-label">Are You A Hot Tub Store Owner? <span class="req">*</span></div>
+          <div class="radio-options">
+            <label class="radio-option">
+              <input type="radio" name="isOwner" value="yes" required /> Yes
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="isOwner" value="no" required /> No
+            </label>
+          </div>
+        </div>
+
+        <!-- How many units can you sell per month? -->
+        <div class="radio-group">
+          <div class="rg-label">How Many Units Per Month Can Your Store Handle? <span class="req">*</span></div>
+          <div class="radio-options">
+            <label class="radio-option">
+              <input type="radio" name="monthlyVolume" value="under-5" required /> Under 5
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="monthlyVolume" value="5-10" /> 5–10
+            </label>
+            <label class="radio-option">
+              <input type="radio" name="monthlyVolume" value="10+" /> 10+
+            </label>
+          </div>
+        </div>
+
+        <!-- Terms -->
+        <div class="ppr-check">
+          <input type="checkbox" id="f-terms" name="terms" required />
+          <label for="f-terms">I agree to terms &amp; conditions provided by Hot Tub Launch. By providing my phone number and email, I agree to receive messages from Hot Tub Launch regarding my application.</label>
+        </div>
+
+        <button class="ppr-btn" type="submit" data-submit>Check Your Market →</button>
+      </form>
+    </div>
+
+    <!-- ===== FOOTER ===== -->
+    <div class="ppr-footer">
+      By submitting this form you agree to our <a href="/privacy">Privacy Policy</a>.<br />
+      Hot Tub Launch · (979) 459-9221 · One store per market, by application only.
+    </div>
+  </div>
+
+  <!-- ===== FORM JAVASCRIPT ===== -->
+  <script is:inline>
+    (function () {
+      var formEl = document.getElementById('pprForm');
+      if (!formEl) return;
+
+      var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      var phoneRe = /[0-9]{10,}/;
+
+      function value(name) {
+        var input = formEl.elements.namedItem(name);
+        return (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) ? input.value.trim() : '';
+      }
+
+      function setError(name, message) {
+        var input = formEl.elements.namedItem(name);
+        var slot = formEl.querySelector('[data-error-for="' + name + '"]');
+        if (input) {
+          if (input.tagName === 'SELECT') {
+            input.style.borderColor = message ? '#CE1126' : '';
+          } else {
+            input.setAttribute('aria-invalid', message ? 'true' : 'false');
+          }
+        }
+        if (slot) slot.textContent = message;
+      }
+
+      function validate() {
+        var firstName = value('name');
+        var lastName = value('lastName');
+        var email = value('email');
+        var phone = value('phone');
+        var businessName = value('businessName');
+        var city = value('city');
+        var state = value('state');
+        var isOwner = value('isOwner');
+        var monthlyVolume = value('monthlyVolume');
+        var terms = value('terms');
+
+        var eName = firstName.length >= 2 ? '' : 'First name is required.';
+        var eLast = lastName.length >= 2 ? '' : 'Last name is required.';
+        var eEmail = emailRe.test(email) ? '' : 'Enter a valid email address.';
+        var ePhone = phoneRe.test(phone) ? '' : 'Enter a valid phone number.';
+        var eBusiness = businessName ? '' : 'Store name is required.';
+        var eCity = city ? '' : 'City is required.';
+        var eState = state ? '' : 'Select your state.';
+        var eOwner = isOwner ? '' : 'Select an option.';
+        var eVolume = monthlyVolume ? '' : 'Select an option.';
+
+        setError('name', eName);
+        setError('lastName', eLast);
+        setError('email', eEmail);
+        setError('phone', ePhone);
+        setError('businessName', eBusiness);
+        setError('city', eCity);
+        setError('state', eState);
+
+        return !eName && !eLast && !eEmail && !ePhone && !eBusiness && !eCity && !eState && !eOwner && !eVolume && terms;
+      }
+
+      function captureTracking() {
+        var params = new URLSearchParams(window.location.search);
+
+        function getHidden(id) {
+          var el = document.getElementById(id);
+          return el instanceof HTMLInputElement ? el : null;
+        }
+
+        // leadUuid + eventId
+        var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
+        var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
+        if (!lu) {
+          lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+          try { sessionStorage.setItem('lead_uuid', lu); } catch (e) {}
+        }
+        if (!ei) {
+          ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+          try { sessionStorage.setItem('event_id', ei); } catch (e) {}
+        }
+
+        var hlu = getHidden('leadUuid'); if (hlu) hlu.value = lu;
+        var hei = getHidden('eventId'); if (hei) hei.value = ei;
+
+        // UTMs
+        var utmFields = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'];
+        utmFields.forEach(function (f) {
+          var stored = null;
+          try { stored = sessionStorage.getItem(f); } catch (e) {}
+          var fromUrl = params.get(f);
+          var val = fromUrl || stored || '';
+          if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch (e) {} }
+          var h = getHidden(f); if (h) h.value = val;
+        });
+
+        // fbclid
+        var fbclid = params.get('fbclid') || '';
+        var hfbclid = getHidden('fbclid'); if (hfbclid) hfbclid.value = fbclid;
+
+        // fbp / fbc
+        var fbp = '';
+        var fbc = '';
+        try {
+          document.cookie.split('; ').forEach(function (c) {
+            if (c.startsWith('_fbp=')) fbp = c.slice(5);
+            if (c.startsWith('_fbc=')) fbc = c.slice(5);
+          });
+        } catch (e) {}
+        var hfbp = getHidden('fbp'); if (hfbp) hfbp.value = fbp;
+        var hfbc = getHidden('fbc'); if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
+
+        // landing url
+        var landing = '';
+        try { landing = sessionStorage.getItem('landing_url'); } catch (e) {}
+        if (!landing) {
+          landing = window.location.href.split('?')[0];
+          try { sessionStorage.setItem('landing_url', landing); } catch (e) {}
+        }
+        var hl = getHidden('landingUrl'); if (hl) hl.value = landing;
+      }
+
+      captureTracking();
+
+      formEl.addEventListener('submit', function (event) {
+        if (!validate()) {
+          event.preventDefault();
+          return;
+        }
+
+        // Fire Pixel Lead event with matching event_id for deduplication
+        var eid = (document.getElementById('eventId') instanceof HTMLInputElement)
+          ? document.getElementById('eventId').value : '';
+        if (typeof fbq === 'function' && eid) {
+          fbq('track', 'Lead', {}, {eventID: eid});
+        }
+
+        // Disable button to prevent double submit
+        var button = formEl.querySelector('[data-submit]');
+        if (button instanceof HTMLButtonElement) {
+          button.disabled = true;
+        }
+      });
+    })();
+  </script>
+</Layout>

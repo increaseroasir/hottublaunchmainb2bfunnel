@@ -1,64 +1,66 @@
+// src/pages/api/lead.ts — Lane C. Nobody else edits this file.
+//
+// Contract (C1): accepts JSON or form-data. JSON requests ALWAYS get a JSON
+// response with all five keys: { ok, leadUuid, eventId, duplicate, redirect }.
+// Form-data keeps the 303 → /confirmed no-JS fallback.
+//
+// Order of operations (checklist §4): D1 first — the lead is never lost —
+// then CRM / CAPI / sheet. A CRM or sheet failure can never fail the lead.
+// Every failure lands in a status column AND fires the alert webhook (C6).
+
 import type { APIRoute } from 'astro';
-import { env } from 'cloudflare:workers';
+import {
+  readAttribution,
+  parseAdParams,
+  fullUrl,
+  uuidv7,
+} from '../../lib/attribution';
+import {
+  asString,
+  buildUserData,
+  capiSend,
+  fireAlert,
+  getBinding,
+  getEnv,
+  ghlBase,
+  googleTokenUrl,
+  normEmail,
+  phone10,
+  phoneE164,
+  sheetsBase,
+  type Dict,
+} from '../../lib/server';
 
 export const prerender = false;
 
 const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const uuidRe = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const GHL_UPSERT_URL = 'https://services.leadconnectorhq.com/contacts/upsert';
+const SHEET_TAB = 'HTL B2B Leads';
 
-type Dict = Record<string, any>;
+type D1Database = import('@cloudflare/workers-types').D1Database;
 
-function getScrt(key: string): string | undefined {
-  // In Astro v6+ Cloudflare adapter, env comes from the module-level import
-  try { return (env as Dict)?.[key] as string; } catch {}
-  return (process.env as Dict)?.[key] as string | undefined;
+function bodyBool(v: unknown): boolean {
+  return v === true || v === 'true' || v === 'on' || v === '1' || v === 1;
 }
 
-function asString(val: unknown): string {
-  return typeof val === 'string' ? val.trim() : '';
+function json(status: number, payload: Dict): Response {
+  return new Response(JSON.stringify(payload), {
+    status,
+    headers: { 'Content-Type': 'application/json' },
+  });
 }
 
-function uuidV7(): string {
-  const now = Date.now();
-  const ts = now.toString(16).padStart(12, '0');
-  const rnd = (n: number) => Array.from({ length: n }, () => Math.floor(Math.random() * 16).toString(16)).join('');
-  return `${ts.slice(0, 8)}-${ts.slice(8, 12)}-7${rnd(3)}-${['8', '9', 'a', 'b'][Math.floor(Math.random() * 4)]}${rnd(3)}-${rnd(12)}`;
+function contractError(status: number, error: string): Response {
+  // Errors still carry the five contract keys so the client never branches on shape.
+  return json(status, { ok: false, leadUuid: '', eventId: '', duplicate: false, redirect: '', error });
 }
 
-// Normalize email for hashing: lowercase + trim
-function normEmail(email: string): string {
-  return email.trim().toLowerCase();
-}
+// ---------- Google Sheets (C7: projection, upserted by lead_uuid) ----------
 
-// Normalize phone: strip non-digits, keep country code if present
-function normPhone(phone: string): string {
-  let digits = phone.replace(/\D/g, '');
-  // Strip international dialing prefix (00...)
-  if (digits.startsWith('00')) digits = digits.slice(2);
-  // US assumption: exactly 10 digits → prepend +1
-  if (digits.length === 10) digits = '1' + digits;
-  // 11+ digits: keep as-is (international numbers with their own country code untouched)
-  return digits;
-}
-
-// E.164 format for GHL: +1XXXXXXXXXX
-function phoneE164(phone: string): string {
-  const digits = normPhone(phone);
-  return digits ? '+' + digits : '';
-}
-
-// SHA-256 hex hash (WebCrypto — available in Cloudflare Workers)
-async function sha256(input: string): Promise<string> {
-  const data = new TextEncoder().encode(input);
-  const digest = await crypto.subtle.digest('SHA-256', data);
-  return Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-// Google Sheets: get access token via service-account JWT
 async function getGoogleAccessToken(clientEmail: string, privateKeyPem: string): Promise<string | null> {
+  const tokenUrl = googleTokenUrl();
+  let assertion = '';
   try {
-    // Handle both actual newlines and literal \n from JSON-escaped PEM
     const pem = privateKeyPem
       .replace(/-----BEGIN PRIVATE KEY-----/g, '')
       .replace(/-----END PRIVATE KEY-----/g, '')
@@ -69,274 +71,471 @@ async function getGoogleAccessToken(clientEmail: string, privateKeyPem: string):
     const now = Math.floor(Date.now() / 1000);
     const b64url = (o: unknown) => btoa(JSON.stringify(o)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
     const header = { alg: 'RS256', typ: 'JWT' };
-    const payload = { iss: clientEmail, scope: 'https://www.googleapis.com/auth/spreadsheets', aud: 'https://oauth2.googleapis.com/token', exp: now + 3600, iat: now };
+    const payload = { iss: clientEmail, scope: 'https://www.googleapis.com/auth/spreadsheets', aud: tokenUrl, exp: now + 3600, iat: now };
     const msg = `${b64url(header)}.${b64url(payload)}`;
     const sig = await crypto.subtle.sign({ name: 'RSASSA-PKCS1-v1_5' }, cryptoKey, new TextEncoder().encode(msg));
-    // Encode signature bytes to base64url (NOT JSON.stringify)
     const sigBytes = new Uint8Array(sig);
     const sigB64 = btoa(String.fromCharCode(...sigBytes)).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
-    const jwt = `${msg}.${sigB64}`;
-    const res = await fetch('https://oauth2.googleapis.com/token', { method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded' }, body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion: jwt }) });
-    const data = await res.json() as Dict;
-    if (!data?.access_token) console.error('Google token response:', JSON.stringify(data).slice(0, 200));
+    assertion = `${msg}.${sigB64}`;
+  } catch (e) {
+    // Local smoke test runs with a stub key that can't be JWT-signed; the stub
+    // token endpoint ignores the assertion. In prod (default token URL) a bad
+    // key is a real failure.
+    if (googleTokenUrl().includes('googleapis.com')) {
+      console.error('Google JWT build error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 200) || '');
+      return null;
+    }
+    assertion = 'stub-unsigned-jwt';
+  }
+  try {
+    const res = await fetch(tokenUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ grant_type: 'urn:ietf:params:oauth:grant-type:jwt-bearer', assertion }),
+      signal: AbortSignal.timeout(10000),
+    });
+    const data = (await res.json()) as Dict;
+    if (!data?.access_token) console.error('Google token response:', res.status, JSON.stringify(data).slice(0, 300));
     return data?.access_token || null;
   } catch (e) {
-    console.error('Google token error:', (e as Error)?.name || 'unknown');
+    console.error('Google token error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 200) || '');
     return null;
   }
 }
 
-// Google Sheets: append a row, dedup by event_id in column B
-async function appendToSheet(accessToken: string, sheetId: string, tabName: string, row: unknown[], eventId: string): Promise<boolean> {
+/**
+ * Upsert one row keyed by lead_uuid in column B (C7). One lead, one row,
+ * forever — updates in place, appends only when absent.
+ * Returns 'ok:updated' | 'ok:appended' | 'failed:<detail>'.
+ */
+async function upsertSheetRow(accessToken: string, sheetId: string, leadUuid: string, row: unknown[]): Promise<string> {
+  const base = sheetsBase();
+  const encTab = encodeURIComponent(`'${SHEET_TAB}'`);
   try {
-    // Wrap tab name in single quotes for names with spaces
-    const encTab = encodeURIComponent(`'${tabName}'`);
-    // Check existing rows for duplicate event_id
-    const getRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encTab}!B:B`, {
+    const getRes = await fetch(`${base}/spreadsheets/${sheetId}/values/${encTab}!B:B`, {
       headers: { Authorization: `Bearer ${accessToken}` },
+      signal: AbortSignal.timeout(10000),
     });
-    if (getRes.ok) {
-      const existing = await getRes.json() as Dict;
-      const vals = (existing?.values || []) as string[][];
-      if (vals.some((r: string[]) => r[0] === eventId)) {
-        return true; // already exists — skip
+    if (!getRes.ok) {
+      const t = await getRes.text();
+      console.error('Sheet read FAILED:', getRes.status, t.slice(0, 300));
+      return `failed:read:${getRes.status}`;
+    }
+    const existing = (await getRes.json()) as Dict;
+    const vals = (existing?.values || []) as string[][];
+    let rowNumber = 0; // 1-based sheet row
+    for (let i = 0; i < vals.length; i++) {
+      if (vals[i]?.[0] === leadUuid) {
+        rowNumber = i + 1;
+        break;
       }
     }
-    // Append the row
-    const appendRes = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${sheetId}/values/${encTab}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
+    if (rowNumber > 0) {
+      const range = `${encTab}!A${rowNumber}`;
+      const updRes = await fetch(`${base}/spreadsheets/${sheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ values: [row] }),
+        signal: AbortSignal.timeout(10000),
+      });
+      if (!updRes.ok) {
+        const t = await updRes.text();
+        console.error('Sheet update FAILED:', updRes.status, t.slice(0, 300));
+        return `failed:update:${updRes.status}`;
+      }
+      return 'ok:updated';
+    }
+    const appRes = await fetch(`${base}/spreadsheets/${sheetId}/values/${encTab}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ values: [row] }),
+      signal: AbortSignal.timeout(10000),
     });
-    return appendRes.ok;
+    if (!appRes.ok) {
+      const t = await appRes.text();
+      console.error('Sheet append FAILED:', appRes.status, t.slice(0, 300));
+      return `failed:append:${appRes.status}`;
+    }
+    return 'ok:appended';
   } catch (e) {
-    console.error('Sheet append error:', (e as Error)?.name || 'unknown');
-    return false;
+    const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 200) || ''}`;
+    console.error('Sheet upsert error:', msg);
+    return `failed:${msg}`;
   }
 }
 
+// ---------- The endpoint ----------
+
 export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
-  const DB = getScrt('DB') as unknown as import('@cloudflare/workers-types').D1Database | undefined;
-  const ghlApiKey = getScrt('GHL_API_KEY');
-  const ghlLocationId = getScrt('GHL_LOCATION_ID');
-  const metaPixelId = getScrt('META_PIXEL_ID');
-  const metaCapiToken = getScrt('META_CAPI_TOKEN');
-  const gSheetsId = getScrt('GOOGLE_SHEETS_ID');
-  const gSheetsEmail = getScrt('GOOGLE_SERVICE_ACCOUNT_EMAIL');
-  const gSheetsKey = getScrt('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY');
+  const DB = getBinding<D1Database>('DB');
+  const ghlApiKey = getEnv('GHL_API_KEY');
+  const ghlLocationId = getEnv('GHL_LOCATION_ID');
+  const metaPixelId = getEnv('META_PIXEL_ID');
+  const metaCapiToken = getEnv('META_CAPI_TOKEN');
+  const gSheetsId = getEnv('GOOGLE_SHEETS_ID');
+  const gSheetsEmail = getEnv('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+  const gSheetsKey = getEnv('GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY');
 
-  let body: Record<string, unknown>;
-
+  const isJson = (request.headers.get('content-type') ?? '').includes('application/json');
+  let body: Dict;
   try {
-    const ct = request.headers.get('content-type') ?? '';
-    body = ct.includes('application/json') ? await request.json() : Object.fromEntries(await request.formData());
+    body = isJson
+      ? ((await request.json()) as Dict)
+      : Object.fromEntries(await request.formData());
   } catch {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid request body.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+    return contractError(400, 'Invalid request body.');
   }
 
-  const name = asString(body.name);
-  const lastName = asString(body.lastName);
+  // ----- fields (accept both meaningful names (B9) and legacy names) -----
+  const firstName = asString(body.first_name) || asString(body.name);
+  const lastName = asString(body.last_name) || asString(body.lastName);
   const email = asString(body.email);
-  const phone = asString(body.phone);
+  const phoneRaw = asString(body.phone);
 
-  if (name.length < 2 || !emailRe.test(email)) {
-    return new Response(JSON.stringify({ ok: false, error: 'Name and valid email required.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
+  if (firstName.length < 2 || !emailRe.test(email)) {
+    return contractError(400, 'Name and valid email required.');
   }
 
-  let leadUuid = asString(body.leadUuid);
-  let eventId = asString(body.eventId);
+  const businessName = asString(body.businessName);
+  const state = asString(body.state);
+  const isOwner = asString(body.isOwner);
+  const monthlyVolume = asString(body.monthlyVolume);
+  const role = asString(body.role);
 
-  // Validate provided UUIDs; if missing, generate clean ones server-side
-  if (leadUuid && !uuidRe.test(leadUuid)) {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid lead identifier.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (eventId && !uuidRe.test(eventId)) {
-    return new Response(JSON.stringify({ ok: false, error: 'Invalid event identifier.' }), { status: 400, headers: { 'Content-Type': 'application/json' } });
-  }
-  if (!leadUuid) leadUuid = uuidV7();
-  if (!eventId) eventId = uuidV7();
-  // fbp/fbc ride the Cookie header on every same-origin POST — read them server-side,
-  // never trust the client body (the form posted empty strings even though cookies existed).
+  let quizAnswers: string | null = null;
+  if (typeof body.quizAnswers === 'string' && body.quizAnswers) quizAnswers = body.quizAnswers;
+  else if (body.quizAnswers && typeof body.quizAnswers === 'object') quizAnswers = JSON.stringify(body.quizAnswers);
+
+  // ----- attribution: the request cookie header is authoritative (A5/C9);
+  //       body fields are the fallback for cookie-less submits -----
   const cookieHeader = request.headers.get('cookie') || '';
+  const att = readAttribution(cookieHeader);
+
+  let leadUuid = att.leadUuid;
+  if (!leadUuid || !uuidRe.test(leadUuid)) {
+    const fromBody = asString(body.leadUuid);
+    leadUuid = fromBody && uuidRe.test(fromBody) ? fromBody : uuidv7();
+  }
+
+  // C2: the SERVER mints the event id, unconditionally. A browser-supplied
+  // value is ignored — one authority, or dedup silently breaks.
+  const eventId = uuidv7();
+
+  const firstUrlBase = att.firstUrl || asString(body.firstUrl);
+  const firstQuery = att.firstQuery || asString(body.firstQuery);
+  const lastUrl = att.lastUrl || asString(body.lastUrl);
+  const lastQuery = att.lastQuery || asString(body.lastQuery);
+  const firstSeenAt = att.firstSeenAt || asString(body.firstSeenAt);
+  const landingUrl = fullUrl(firstUrlBase, firstQuery) || asString(body.landingUrl) || 'https://hottublaunch.com';
+
+  // A6: UTMs parsed with the explicit snake_case map. First touch answers
+  // "which ad created this lead"; last touch fills gaps for untagged first visits.
+  const utmFirst = parseAdParams(firstQuery);
+  const utmLast = parseAdParams(lastQuery);
+  const utm = (k: string) => utmFirst[k] || utmLast[k] || asString(body[k]);
+  const utmSource = utm('utmSource');
+  const utmMedium = utm('utmMedium');
+  const utmCampaign = utm('utmCampaign');
+  const utmContent = utm('utmContent');
+  const utmTerm = utm('utmTerm');
+  const gclid = utmFirst.gclid || utmLast.gclid || asString(body.gclid);
+  const fbclid = utmFirst.fbclid || utmLast.fbclid || asString(body.fbclid);
+
+  // fbp/fbc ride the Cookie header on every same-origin POST — read them
+  // server-side, never trust the client body first.
   const cookieVal = (name: string) => {
     const m = cookieHeader.match(new RegExp(`(?:^|;\\s*)${name}=([^;]*)`));
     return m ? decodeURIComponent(m[1]) : '';
   };
-  const fbp = asString(body.fbp) || cookieVal('_fbp');
-  const fbc = asString(body.fbc) || cookieVal('_fbc') || (asString(body.fbclid) ? `fb.1.${Math.floor(Date.now() / 1000)}.${asString(body.fbclid)}` : '');
-  const utmSource = asString(body.utmSource);
-  const utmMedium = asString(body.utmMedium);
-  const utmCampaign = asString(body.utmCampaign);
-  const utmContent = asString(body.utmContent);
-  const utmTerm = asString(body.utmTerm);
-  const landingUrl = asString(body.landingUrl) || `https://hottublaunch.com`;
-  const quizAnswers = body.quizAnswers as Record<string, string> | undefined;
+  const fbp = cookieVal('_fbp') || asString(body.fbp);
+  const fbc =
+    cookieVal('_fbc') ||
+    asString(body.fbc) ||
+    (fbclid ? `fb.1.${Math.floor(Date.now() / 1000)}.${fbclid}` : '');
 
+  // ----- consent (B8/C10): the exact rendered text, or it doesn't count -----
+  const consentGiven = bodyBool(body.consentGiven) || bodyBool(body.terms);
+  const consentText = asString(body.consentText);
+  const consentVersion = asString(body.consentVersion);
+  const consentUrl = asString(body.consentUrl);
   const now = new Date().toISOString();
-  // Real visitor IP — Cloudflare passes it in CF-Connecting-IP (not a proxy address)
+  const consentAt = consentGiven ? now : '';
+  // C11: contactable only with a real consent record — text included
+  const contactable = consentGiven && consentText.length > 0 ? 1 : 0;
+
+  const phone = phoneRaw ? phoneE164(phoneRaw) : '';
+  const p10 = phoneRaw ? phone10(phoneRaw) : '';
   const ip = request.headers.get('cf-connecting-ip') || clientAddress || '';
   const ua = request.headers.get('user-agent') || '';
 
-  // 1. Store in D1 (INSERT OR IGNORE so a retry with same lead_uuid doesn't fail)
+  // ----- C3/C4: 24h duplicate suppression, successful conversions only -----
+  let duplicate = false;
+  let d1Status = 'skipped:no-binding';
+  if (DB) {
+    try {
+      const dupRow = await DB.prepare(
+        `SELECT lead_uuid FROM leads
+         WHERE conversion_status = 'ok'
+           AND COALESCE(updated_at, created_at) > datetime('now', '-1 day')
+           AND (lower(email) = ? OR (? <> '' AND substr(phone, -10) = ?))
+         LIMIT 1`
+      )
+        .bind(normEmail(email), p10, p10)
+        .first();
+      duplicate = !!dupRow;
+    } catch (e) {
+      const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 200) || ''}`;
+      console.error('D1 dedup query error:', msg);
+      await fireAlert({ alert: 'D1_DEDUP_QUERY_FAILED', lead_uuid: leadUuid, error: msg });
+      // On dedup failure fail open (fire the conversion) — losing signal is
+      // worse than a rare double-count, and the alert already told us.
+    }
+  }
+
+  // ----- 1. D1 upsert — written FIRST, before any external call (C5:
+  //       a duplicate is still a human; always store the record) -----
+  let d1Ok = false;
   if (DB) {
     try {
       await DB.prepare(
-        `INSERT OR IGNORE INTO leads (lead_uuid, event_id, name, last_name, phone, email, fbp, fbc, utm_source, utm_medium, utm_campaign, utm_content, utm_term, landing_url, quiz_answers, ip, user_agent, status, created_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'ok', ?)`
-      ).bind(leadUuid, eventId, name, lastName || null, phone || null, email, fbp, fbc, utmSource, utmMedium, utmCampaign, utmContent, utmTerm, landingUrl, quizAnswers ? JSON.stringify(quizAnswers) : null, ip, ua, now).run();
+        `INSERT INTO leads (
+           lead_uuid, event_id, name, last_name, phone, email, fbp, fbc,
+           utm_source, utm_medium, utm_campaign, utm_content, utm_term,
+           landing_url, quiz_answers, ip, user_agent, status, created_at,
+           business_name, state, is_owner, monthly_volume, role,
+           first_url, first_query, last_url, last_query, first_seen_at, gclid,
+           consent_given, consent_text, consent_version, consent_url, consent_at,
+           contactable, conversion_status, d1_status, updated_at, submit_count
+         ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'ok',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending','ok',?,1)
+         ON CONFLICT(lead_uuid) DO UPDATE SET
+           event_id = excluded.event_id,
+           name = excluded.name,
+           last_name = COALESCE(NULLIF(excluded.last_name,''), leads.last_name),
+           phone = COALESCE(NULLIF(excluded.phone,''), leads.phone),
+           email = excluded.email,
+           fbp = COALESCE(NULLIF(excluded.fbp,''), leads.fbp),
+           fbc = COALESCE(NULLIF(excluded.fbc,''), leads.fbc),
+           utm_source = COALESCE(NULLIF(excluded.utm_source,''), leads.utm_source),
+           utm_medium = COALESCE(NULLIF(excluded.utm_medium,''), leads.utm_medium),
+           utm_campaign = COALESCE(NULLIF(excluded.utm_campaign,''), leads.utm_campaign),
+           utm_content = COALESCE(NULLIF(excluded.utm_content,''), leads.utm_content),
+           utm_term = COALESCE(NULLIF(excluded.utm_term,''), leads.utm_term),
+           landing_url = COALESCE(NULLIF(excluded.landing_url,''), leads.landing_url),
+           quiz_answers = COALESCE(excluded.quiz_answers, leads.quiz_answers),
+           ip = excluded.ip,
+           user_agent = excluded.user_agent,
+           business_name = COALESCE(NULLIF(excluded.business_name,''), leads.business_name),
+           state = COALESCE(NULLIF(excluded.state,''), leads.state),
+           is_owner = COALESCE(NULLIF(excluded.is_owner,''), leads.is_owner),
+           monthly_volume = COALESCE(NULLIF(excluded.monthly_volume,''), leads.monthly_volume),
+           role = COALESCE(NULLIF(excluded.role,''), leads.role),
+           first_url = COALESCE(NULLIF(excluded.first_url,''), leads.first_url),
+           first_query = COALESCE(NULLIF(excluded.first_query,''), leads.first_query),
+           last_url = excluded.last_url,
+           last_query = excluded.last_query,
+           first_seen_at = COALESCE(NULLIF(excluded.first_seen_at,''), leads.first_seen_at),
+           gclid = COALESCE(NULLIF(excluded.gclid,''), leads.gclid),
+           consent_given = MAX(leads.consent_given, excluded.consent_given),
+           consent_text = COALESCE(NULLIF(excluded.consent_text,''), leads.consent_text),
+           consent_version = COALESCE(NULLIF(excluded.consent_version,''), leads.consent_version),
+           consent_url = COALESCE(NULLIF(excluded.consent_url,''), leads.consent_url),
+           consent_at = COALESCE(leads.consent_at, NULLIF(excluded.consent_at,'')),
+           contactable = MAX(leads.contactable, excluded.contactable),
+           d1_status = 'ok',
+           status = 'ok',
+           updated_at = excluded.updated_at,
+           submit_count = leads.submit_count + 1`
+      )
+        .bind(
+          leadUuid, eventId, firstName, lastName || null, phone || null, email, fbp, fbc,
+          utmSource, utmMedium, utmCampaign, utmContent, utmTerm,
+          landingUrl, quizAnswers, ip, ua, now,
+          businessName || null, state || null, isOwner || null, monthlyVolume || null, role || null,
+          firstUrlBase || null, firstQuery || null, lastUrl || null, lastQuery || null, firstSeenAt || null, gclid || null,
+          consentGiven ? 1 : 0, consentText || null, consentVersion || null, consentUrl || null, consentAt || null,
+          contactable, now
+        )
+        .run();
+      d1Ok = true;
+      d1Status = 'ok';
     } catch (e) {
-      const errMsg = (e as Error)?.message || 'unknown';
-      const errName = (e as Error)?.name || 'unknown';
-      console.error('D1 insert error:', errName, errMsg);
-      // Mark the lead as failed in D1 (INSERT may have failed entirely — try UPDATE if partial)
-      try {
-        await DB.prepare(
-          `INSERT OR IGNORE INTO leads (lead_uuid, event_id, name, last_name, phone, email, status, status_message, created_at) VALUES (?, ?, ?, ?, ?, ?, 'd1_failed', ?, ?)`
-        ).bind(leadUuid, eventId, name, lastName || null, email, `${errName}: ${errMsg.substring(0, 200)}`, now).run();
-      } catch (e2) { /* best-effort */ }
-      // Fire alert via webhook if configured
-      const alertUrl = getScrt('ALERT_WEBHOOK_URL');
-      if (alertUrl) {
-        fetch(alertUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ alert: 'D1_INSERT_FAILED', lead_uuid: leadUuid, error: errName, message: errMsg.substring(0, 500) }),
-        }).catch(() => {});
-      }
+      const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 300) || ''}`;
+      d1Status = `failed:${msg}`;
+      console.error('D1 upsert error:', msg);
+      await fireAlert({ alert: 'D1_INSERT_FAILED', lead_uuid: leadUuid, email_domain: email.split('@')[1] || '', error: msg });
+      // continue — GHL/sheet may still capture the human
     }
+  } else {
+    console.error('D1 binding missing — lead not stored in database');
+    await fireAlert({ alert: 'D1_BINDING_MISSING', lead_uuid: leadUuid });
   }
 
-  // 2. Upsert to GHL
+  // ----- 2. GHL upsert (C6: log status + body; C10: consent custom field;
+  //       C11: tag; suppression never skips this — C5) -----
   let ghlContactId = '';
+  let ghlStatus = 'skipped:no-key';
   if (ghlApiKey && ghlLocationId) {
     try {
-      const ghlPayload: Record<string, unknown> = {
-        firstName: name,
+      const customFields: Dict[] = [];
+      const cfLeadUuid = getEnv('GHL_CF_LEAD_UUID_ID');
+      if (cfLeadUuid) customFields.push({ id: cfLeadUuid, value: leadUuid });
+      const cfConsent = getEnv('GHL_CF_CONSENT_TEXT_ID');
+      if (cfConsent && consentGiven && consentText) {
+        customFields.push({ id: cfConsent, value: `${consentText} | version=${consentVersion} | url=${consentUrl} | at=${consentAt}` });
+      }
+      const ghlPayload: Dict = {
+        firstName,
         lastName: lastName || undefined,
         email,
-        phone: phone ? phoneE164(phone) : undefined,
+        phone: phone || undefined,
         locationId: ghlLocationId,
         source: 'Hot Tub Launch B2B Website',
+        // C11: a lead with no consent record must never enter an automated sequence
+        tags: ['htl-b2b-website', contactable ? 'consent-captured' : 'no-consent-no-automation'],
       };
+      if (customFields.length) ghlPayload.customFields = customFields;
 
-      const ghlRes = await fetch(GHL_UPSERT_URL, {
+      const ghlRes = await fetch(`${ghlBase()}/contacts/upsert`, {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${ghlApiKey}`,
-          'Version': '2021-07-28',
+          Authorization: `Bearer ${ghlApiKey}`,
+          Version: '2021-07-28',
           'Content-Type': 'application/json',
         },
         body: JSON.stringify(ghlPayload),
+        signal: AbortSignal.timeout(10000),
       });
-
-      // Log the full GHL response for diagnostics — status + body (no token echo)
+      const ghlText = await ghlRes.text();
       if (!ghlRes.ok) {
-        console.error('GHL upsert FAILED:', ghlRes.status, await ghlRes.text());
-      }
-      const ghlData = await ghlRes.json() as { contact?: { id?: string } } | null;
-      ghlContactId = ghlData?.contact?.id || '';
-      if (!ghlContactId) {
-        console.error('GHL upsert: no contact.id in response. Status:', ghlRes.status, 'Body:', JSON.stringify(ghlData).slice(0, 500));
-      }
-      // Backfill D1 with the GHL contact ID so the lead↔contact link is never null
-      if (ghlContactId && DB) {
-        try {
-          await DB.prepare(
-            `UPDATE leads SET ghl_contact_id = ?, status = 'ghl_wired' WHERE lead_uuid = ?`
-          ).bind(ghlContactId, leadUuid).run();
-        } catch (e) {
-          console.error('D1 ghl_contact_id backfill error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.substring(0, 100) || '');
+        // C6: status + FULL response body. `401 {"message":"Invalid JWT"}` must be visible.
+        ghlStatus = `failed:${ghlRes.status}`;
+        console.error('GHL upsert FAILED:', ghlRes.status, ghlText.slice(0, 500));
+        await fireAlert({ alert: 'GHL_UPSERT_FAILED', lead_uuid: leadUuid, status: ghlRes.status, body: ghlText.slice(0, 500) });
+      } else {
+        let ghlData: Dict | null = null;
+        try { ghlData = JSON.parse(ghlText) as Dict; } catch {}
+        ghlContactId = (ghlData?.contact as Dict | undefined)?.id || '';
+        if (ghlContactId) {
+          ghlStatus = 'ok';
+        } else {
+          ghlStatus = 'failed:no-contact-id';
+          console.error('GHL upsert: no contact.id in response. Status:', ghlRes.status, 'Body:', ghlText.slice(0, 500));
+          await fireAlert({ alert: 'GHL_NO_CONTACT_ID', lead_uuid: leadUuid, status: ghlRes.status, body: ghlText.slice(0, 500) });
         }
       }
     } catch (e) {
-      console.error('GHL upsert error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 300) || 'no message');
+      const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 300) || ''}`;
+      ghlStatus = `failed:${msg}`;
+      console.error('GHL upsert error:', msg);
+      await fireAlert({ alert: 'GHL_UPSERT_ERROR', lead_uuid: leadUuid, error: msg });
     }
+  } else {
+    console.error('GHL secrets missing — no CRM record for this lead');
+    await fireAlert({ alert: 'GHL_NOT_CONFIGURED', lead_uuid: leadUuid });
   }
 
-  // 3. Send Meta CAPI Lead event
-  if (metaCapiToken && metaPixelId) {
-    try {
-      const [hashEm, hashFn, hashLn, hashPh, hashExtId] = await Promise.all([
-        sha256(normEmail(email)),
-        sha256(name.toLowerCase().trim()),
-        lastName ? sha256(lastName.toLowerCase().trim()) : Promise.resolve(''),
-        phone ? sha256(normPhone(phone)) : Promise.resolve(''),
-        sha256(leadUuid),
-      ]);
-
-      const capiEvent: Record<string, unknown> = {
-        event_name: 'Lead',
-        event_time: Math.floor(Date.now() / 1000),
-        event_id: eventId,
-        event_source_url: landingUrl,
-        action_source: 'website',
-        user_data: {
-          em: [hashEm],
-          fn: [hashFn],
-          client_ip_address: ip || undefined,
-          client_user_agent: ua || undefined,
-          fbp: fbp || undefined,
-          fbc: fbc || undefined,
-          external_id: [hashExtId],
-        },
-        custom_data: {
-          funnel_type: 'hottublaunch_b2b',
-        },
-      };
-
-      if (hashLn) (capiEvent.user_data as Dict).ln = [hashLn];
-      if (hashPh) (capiEvent.user_data as Dict).ph = [hashPh];
-
-      const capiPayload: Dict = {
-        data: [capiEvent],
-      };
-
-      const capiRes = await fetch(`https://graph.facebook.com/v21.0/${metaPixelId}/events`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${metaCapiToken}`,
-        },
-        body: JSON.stringify(capiPayload),
-      });
-      const capiBody = await capiRes.text() as string;
-      // Log status + Meta response (contains no raw PII, no token echo)
-      console.error('CAPI:', capiRes.status, capiBody);
-    } catch (e) {
-      // Never log the fetch URL or the error object — it may contain the token
-      console.error('Meta CAPI error (suppressed to protect token):', (e as Error)?.name || 'unknown');
+  // ----- 3. Meta CAPI Lead event — suppressed for duplicates and ONLY for
+  //       duplicates (C3/C5). event_source_url is the real first-touch
+  //       landing URL with its params (C9). value + currency present (C12). -----
+  let capiStatus = 'skipped:no-token';
+  let conversionStatus = 'skipped';
+  if (duplicate) {
+    capiStatus = 'suppressed:duplicate-24h';
+    conversionStatus = 'suppressed';
+  } else if (metaCapiToken && metaPixelId) {
+    const userData = await buildUserData({
+      email,
+      phone: phoneRaw || undefined,
+      firstName,
+      lastName: lastName || undefined,
+      state: state || undefined, // C8: st added because the form collects it; zp/ct NOT collected → N/A
+      leadUuid,
+      ip: ip || undefined,
+      ua: ua || undefined,
+      fbp: fbp || undefined,
+      fbc: fbc || undefined,
+    });
+    const leadValue = parseFloat(getEnv('LEAD_VALUE_USD') || '0');
+    const capiEvent: Dict = {
+      event_name: 'Lead',
+      event_time: Math.floor(Date.now() / 1000),
+      event_id: eventId,
+      event_source_url: landingUrl,
+      action_source: 'website',
+      user_data: userData,
+      custom_data: {
+        funnel_type: 'hottublaunch_b2b',
+        currency: getEnv('LEAD_CURRENCY') || 'USD',
+        value: Number.isFinite(leadValue) ? leadValue : 0,
+      },
+    };
+    const capiRes = await capiSend(metaPixelId, metaCapiToken, [capiEvent]);
+    if (capiRes.ok) {
+      capiStatus = `ok:${capiRes.status}`;
+      conversionStatus = 'ok';
+    } else {
+      capiStatus = `failed:${capiRes.status}`;
+      conversionStatus = 'failed'; // C4: a failed conversion allows a retry
+      await fireAlert({ alert: 'CAPI_LEAD_FAILED', lead_uuid: leadUuid, status: capiRes.status, body: capiRes.body.slice(0, 500) });
     }
+  } else {
+    console.error('Meta CAPI secrets missing — no server event for this lead');
+    await fireAlert({ alert: 'CAPI_NOT_CONFIGURED', lead_uuid: leadUuid });
   }
 
-  // 4. Append to Google Sheet (HTL B2B Leads tab)
-  let sheetOk = false;
+  // ----- 4. Google Sheet — a projection of the database, upserted by
+  //       lead_uuid (C7). Duplicates still land here (C5). -----
+  let sheetStatus = 'skipped:no-secrets';
   if (gSheetsId && gSheetsEmail && gSheetsKey) {
     const token = await getGoogleAccessToken(gSheetsEmail, gSheetsKey);
     if (token) {
       const row: unknown[] = [
-        now, leadUuid, eventId, name, lastName || '', email, phone || '',
-        asString(body.businessName), asString(body.website), asString(body.city),
-        asString(body.state), asString(body.numLocations), asString(body.productsSold),
+        now, leadUuid, eventId, firstName, lastName || '', email, phone || '',
+        businessName, asString(body.website), asString(body.city),
+        state, asString(body.numLocations), asString(body.productsSold),
         asString(body.currentMarketing), asString(body.adSpend), asString(body.challenge),
         asString(body.requestedService), landingUrl, utmSource, utmMedium, utmCampaign,
-        utmContent, utmTerm, asString(body.fbclid), ghlContactId,
+        utmContent, utmTerm, fbclid, ghlContactId,
+        firstQuery, consentGiven ? 'yes' : 'no', contactable ? 'yes' : 'no',
+        conversionStatus, capiStatus, ghlStatus,
       ];
-      sheetOk = await appendToSheet(token, gSheetsId, 'HTL B2B Leads', row, eventId);
-      if (!sheetOk) console.error('Sheet append failed (non-blocking)');
+      sheetStatus = await upsertSheetRow(token, gSheetsId, leadUuid, row);
+      if (sheetStatus.startsWith('failed')) {
+        await fireAlert({ alert: 'SHEET_UPSERT_FAILED', lead_uuid: leadUuid, detail: sheetStatus });
+      }
     } else {
-      console.error('Sheet token unavailable');
+      sheetStatus = 'failed:no-token';
+      await fireAlert({ alert: 'SHEET_TOKEN_FAILED', lead_uuid: leadUuid });
     }
   } else {
     console.error('Sheet secrets missing');
   }
 
-  // 5. Return — only eventId exposed (needed for Pixel dedup), never raw leadUuid or ghlContactId
-  const isJson = (request.headers.get('content-type') ?? '').includes('application/json');
-  if (isJson) {
-    return new Response(JSON.stringify({ ok: true, eventId }), {
-      status: 200,
-      headers: { 'Content-Type': 'application/json' },
-    });
+  // ----- 5. Final status write-back (C6: every outcome lands in a column) -----
+  if (DB && d1Ok) {
+    try {
+      await DB.prepare(
+        `UPDATE leads SET
+           ghl_contact_id = COALESCE(NULLIF(?, ''), ghl_contact_id),
+           ghl_status = ?,
+           capi_status = ?,
+           sheet_status = ?,
+           conversion_status = CASE WHEN ? = 'suppressed' AND conversion_status = 'ok' THEN 'ok' ELSE ? END
+         WHERE lead_uuid = ?`
+      )
+        .bind(ghlContactId, ghlStatus, capiStatus, sheetStatus, conversionStatus, conversionStatus, leadUuid)
+        .run();
+    } catch (e) {
+      console.error('D1 status write-back error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 200) || '');
+    }
   }
 
+  // ----- 6. Respond (C1) -----
+  const ok = d1Ok || ghlStatus === 'ok' || sheetStatus.startsWith('ok');
+  if (!ok) {
+    await fireAlert({ alert: 'LEAD_STORED_NOWHERE', lead_uuid: leadUuid, d1: d1Status, ghl: ghlStatus, sheet: sheetStatus });
+  }
+  const payload = { ok, leadUuid, eventId, duplicate, redirect: '/confirmed' };
+  if (isJson) return json(ok ? 200 : 500, payload);
   return redirect('/confirmed', 303);
 };

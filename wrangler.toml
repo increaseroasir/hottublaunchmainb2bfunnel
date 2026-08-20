@@ -6,6 +6,7 @@ compatibility_flags = ["nodejs_compat"]
 binding = "DB"
 database_name = "hottublaunch-b2b"
 database_id = "6891bc02-67f7-49fc-9fec-e4c98cb247e5"
+migrations_dir = "db/migrations"
 
 [vars]
 SITE_URL = "https://hottublaunch.com"

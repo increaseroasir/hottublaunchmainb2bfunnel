@@ -1,13 +1,32 @@
 // src/middleware.ts
 // Lane A — Attribution core. Runs on every HTML request before any page renders.
 // Sets cookies: htl_lead_uuid, htl_attr_first, htl_attr_last.
+// Exposes the merged attribution to pages via context.locals.attribution.
 // Skips /api/* and static assets.
+//
+// Also sets the Client-Hints response headers (Lane D3): UA strings are being
+// throttled industry-wide; these restore device model / platform version for
+// Meta's matching. Free lift on mobile.
 
 import { defineMiddleware } from 'astro:middleware';
 import { handleAttribution } from './lib/attribution';
 
+const PERMISSIONS_POLICY =
+  'ch-ua-model=(*), ch-ua-platform-version=(*), ch-ua-full-version=(*)';
+// Permissions-Policy delegates the hints; Accept-CH asks the browser to send them at all.
+const ACCEPT_CH = 'Sec-CH-UA-Model, Sec-CH-UA-Platform-Version, Sec-CH-UA-Full-Version';
+
 export const onRequest = defineMiddleware(async (context, next) => {
   const { request, url } = context;
+
+  // 301 redirect /ppr → /check-territory (preserves query string).
+  // Before the Accept gate so every client gets it, curl included.
+  if (url.pathname === '/ppr' || url.pathname === '/ppr/') {
+    return new Response(null, {
+      status: 301,
+      headers: { Location: '/check-territory' + url.search },
+    });
+  }
 
   // Skip API routes and static assets
   const accept = request.headers.get('accept') || '';
@@ -18,32 +37,21 @@ export const onRequest = defineMiddleware(async (context, next) => {
     return next();
   }
   // Skip static asset extensions
-  if (/\.(ico|png|jpg|jpeg|webp|svg|css|js|json|txt|xml|webmanifest|woff2?)$/i.test(url.pathname)) {
+  if (/\.(ico|png|jpg|jpeg|webp|svg|css|js|json|txt|xml|webmanifest|woff2?|mp4)$/i.test(url.pathname)) {
     return next();
-  }
-
-  // 301 redirect /ppr → /check-territory (preserves query string)
-  if (url.pathname === '/ppr') {
-    const target = '/check-territory' + url.search;
-    return new Response(null, {
-      status: 301,
-      headers: { Location: target },
-    });
   }
 
   const cookies = request.headers.get('cookie') || '';
-  const { setCookies } = handleAttribution(url, cookies);
+  const { setCookies, attribution } = handleAttribution(url, cookies);
+  context.locals.attribution = attribution;
 
-  // If no cookies need setting, just continue
-  if (setCookies.length === 0) {
-    return next();
-  }
-
-  // Set cookies on the response
   const res = await next();
   const newRes = new Response(res.body, res);
   for (const cookie of setCookies) {
     newRes.headers.append('Set-Cookie', cookie);
   }
+  // Lane D3 — Client Hints for Meta matching
+  newRes.headers.set('Permissions-Policy', PERMISSIONS_POLICY);
+  newRes.headers.set('Accept-CH', ACCEPT_CH);
   return newRes;
 });

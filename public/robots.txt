@@ -1,17 +1,21 @@
 User-agent: *
 Allow: /
 
-# Funnel mid/end pages — keep out of organic crawl
+# Paid landing pages + funnel pages — never crawled, never ranked (Lane E2).
+# Belt and suspenders with the noindex meta on each page (E1).
+Disallow: /ppr
+Disallow: /check-territory
+Disallow: /apply
+Disallow: /profit-playbook
+Disallow: /case-study
+Disallow: /webinar-registration
+Disallow: /confirmed
+Disallow: /thankyou
 Disallow: /thankyou-general
-Disallow: /case-study/booking
-Disallow: /case-study/thank-you/
-Disallow: /profit-playbook/booking-calendar
-Disallow: /profit-playbook/pre-call-lite
-Disallow: /webinar-registration/booking
-Disallow: /webinar-registration/thank-you/
-Disallow: /webinar-registration/webinar-confirmation
 
 # Drafts / internal previews
+Disallow: /homepage-draft
+Disallow: /homepage-ai
 Disallow: /homepage-draft.html
 Disallow: /homepage-ai-draft.html
 Disallow: /ai-components-draft.html

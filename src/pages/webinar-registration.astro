@@ -1,0 +1,467 @@
+---
+import Layout from '../layouts/Layout.astro';
+---
+
+<Layout
+  title="Free Masterclass for Hot Tub Store Owners — Hot Tub Launch"
+  description="Get the 3-part AI playbook growth-minded hot tub stores use to fill their showroom with qualified buyers, move aging inventory, and stop losing sales to competitors — practical, proven steps you can start using this week."
+>
+  <meta name="robots" content="index, follow" />
+
+  <style is:global>
+  :root{
+    --dark:#0E0C0B; --dark-2:#141210; --white:#FFFFFF; --gray-bg:#F2F0EC;
+    --ink:#141210; --gray:#4A453F; --muted:#8A837C; --muted-light:#B9B2AA;
+    --red:#CE1126; --red-2:#E63A4E; --red-dark:#A80E1F; --cream:#FAF7F2;
+    --grad:linear-gradient(120deg,#FF5236 0%,#E11029 50%,#A80E1F 100%);
+    --wrap:660px;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{background:var(--dark);color:var(--cream);font-family:'Manrope',system-ui,sans-serif;font-size:17px;line-height:1.5;-webkit-font-smoothing:antialiased}
+  a{color:inherit;text-decoration:none}
+  h1,h2{font-family:'Montserrat',sans-serif;font-weight:900;line-height:1.05;letter-spacing:-.01em}
+  .wrap{max-width:var(--wrap);margin-inline:auto;padding-inline:1.3rem}
+  .grad-text{background:var(--grad);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+  /* CTA button */
+  .cta{display:flex;align-items:center;justify-content:center;width:100%;max-width:520px;margin:0 auto;cursor:pointer;
+    font-family:'Montserrat';font-weight:900;font-size:1.35rem;letter-spacing:.02em;text-transform:uppercase;color:#fff;
+    padding:1.05em 1.2em;border:0;border-radius:16px;background:var(--grad);
+    box-shadow:0 0 44px rgba(206,17,38,.55),0 10px 24px rgba(206,17,38,.35);transition:transform .15s}
+  .cta:hover{transform:translateY(-2px)}
+
+  /* ===== 1. COUNTDOWN BAR ===== */
+  .cbar{background:#000;border-bottom:3px solid var(--red);padding:1.1rem 0;position:sticky;top:0;z-index:60}
+  .cbar .row{display:flex;align-items:center;justify-content:center;gap:.6rem;flex-wrap:wrap;text-align:center}
+  .cbar .lbl{display:inline-flex;align-items:center;gap:.55rem;font-family:'Montserrat';font-weight:800;font-size:1rem;letter-spacing:.06em;text-transform:uppercase;color:#fff}
+  .cbar .dot{width:10px;height:10px;border-radius:50%;background:var(--red);box-shadow:0 0 10px var(--red)}
+  .cbar .date{font-family:'Manrope';font-weight:700;color:#fff;font-size:1rem}
+  .cbar .starts{margin-top:.5rem;font-family:'Montserrat';font-weight:800;font-size:1rem;letter-spacing:.08em;text-transform:uppercase;color:#fff}
+  .cbar .t{color:var(--red-2)}
+
+  /* ===== 2. HERO ===== */
+  .hero{background:var(--dark);padding:clamp(2.2rem,5vw,3.5rem) 0 clamp(2.5rem,5vw,3.5rem);text-align:center}
+  .logo{display:inline-flex;align-items:center;gap:.6rem;margin-bottom:clamp(1.8rem,4vw,2.6rem)}
+  .logo .mk{width:44px;height:44px}
+  .logo .w1{display:block;font-family:'Montserrat';font-weight:800;font-size:1.35rem;letter-spacing:.03em;color:#fff;text-transform:uppercase;line-height:.85}
+  .logo .w2{display:block;font-family:'Montserrat';font-weight:700;font-size:.85rem;letter-spacing:.42em;color:var(--red-2);text-transform:uppercase;margin-top:3px}
+  .hero .kick{font-family:'Montserrat';font-weight:900;text-transform:uppercase;color:#fff;font-size:clamp(1.7rem,4.4vw,2.5rem);line-height:1.12;letter-spacing:.01em;margin-bottom:clamp(1.6rem,4vw,2.4rem)}
+  .hero .big{font-size:clamp(2.4rem,7vw,3.9rem);line-height:1.02;margin-bottom:clamp(1.6rem,4vw,2.2rem)}
+  .hero .sub{font-size:clamp(1.05rem,2vw,1.3rem);color:#E4DDD3;font-weight:500;max-width:56ch;margin:0 auto clamp(1.8rem,4vw,2.6rem)}
+  .hero .date-big{font-family:'Montserrat';font-weight:900;color:var(--cream);font-size:clamp(1.9rem,4.6vw,2.7rem);line-height:1.08;margin-bottom:clamp(1.8rem,4vw,2.4rem)}
+
+  /* ===== 3. COUNTDOWN + HOSTS ===== */
+  .hostsec{background:var(--dark);padding:0 0 clamp(2.5rem,5vw,3.5rem);text-align:center}
+  .nospam{color:var(--muted-light);font-family:'Montserrat';font-weight:700;font-size:1.05rem;letter-spacing:.02em;margin-bottom:1.8rem}
+  .cd{display:flex;align-items:flex-start;justify-content:center;gap:.4rem;margin-bottom:2.2rem}
+  .cd .u{min-width:64px}
+  .cd .n{font-family:'Montserrat';font-weight:900;font-size:clamp(2.4rem,6vw,3.2rem);color:#fff;line-height:1}
+  .cd .k{font-family:'Montserrat';font-weight:800;font-size:.75rem;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:.5rem}
+  .cd .sep{font-family:'Montserrat';font-weight:900;font-size:clamp(2rem,5vw,2.8rem);color:var(--muted);line-height:1.1}
+  /* hosts photo placeholder */
+  .hosts-media{max-width:560px;margin:0 auto 1.6rem;aspect-ratio:4/3;border-radius:18px;overflow:hidden;position:relative;
+    background:linear-gradient(150deg,#241f1b,#141210);display:flex;align-items:center;justify-content:center;box-shadow:0 24px 60px rgba(0,0,0,.5)}
+  .hosts-media span{font-family:'Montserrat';font-weight:700;font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(250,247,242,.35);text-align:center;padding:2rem;line-height:1.7}
+  .seats{font-family:'Montserrat';font-weight:800;font-size:clamp(1rem,2.2vw,1.2rem);letter-spacing:.05em;text-transform:uppercase;color:var(--red-2)}
+
+  /* ===== 4. TRUST LOGOS ===== */
+  .trust{background:var(--dark);padding:clamp(2rem,4vw,3rem) 0 clamp(3rem,6vw,4rem);text-align:center}
+  .trust .lbl{font-family:'Montserrat';font-weight:800;font-size:.82rem;letter-spacing:.16em;text-transform:uppercase;color:var(--muted-light);margin-bottom:2rem}
+  .trust .logos{display:flex;flex-wrap:wrap;justify-content:center;gap:1.1rem}
+  .trust .lg{width:210px;height:110px;border-radius:12px;background:#fff;display:flex;align-items:center;justify-content:center;
+    font-family:'Montserrat';font-weight:800;font-size:.78rem;letter-spacing:.06em;text-transform:uppercase;color:#9a9088;text-align:center;padding:1rem}
+
+  /* ===== 5. THIS IS FOR (white) ===== */
+  .forsec{background:var(--white);padding:clamp(3rem,7vw,5.5rem) 0;text-align:center}
+  .forsec h2{color:var(--red);font-size:clamp(2.4rem,7vw,4rem);line-height:1.02;margin-bottom:1.4rem}
+  .forsec .sub{color:var(--gray);font-size:clamp(1.1rem,2.2vw,1.35rem);max-width:44ch;margin:0 auto clamp(2.4rem,5vw,3.4rem)}
+  .checks{text-align:left;max-width:560px;margin:0 auto clamp(2.4rem,5vw,3.4rem);display:flex;flex-direction:column;gap:clamp(1.6rem,3vw,2.2rem)}
+  .check{display:flex;gap:1rem;align-items:flex-start}
+  .check .ic{flex:none;color:var(--red);margin-top:.1em}
+  .check p{color:var(--ink);font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:500;line-height:1.4}
+
+  /* ===== 6. REAL RESULTS (light gray) ===== */
+  .results{background:var(--gray-bg);padding:clamp(3rem,7vw,5.5rem) 0;text-align:center}
+  .results h2{color:var(--red);font-size:clamp(2.2rem,6.4vw,3.6rem);line-height:1.04;margin-bottom:1.4rem}
+  .results .sub{color:var(--gray);font-size:clamp(1.1rem,2.2vw,1.35rem);max-width:46ch;margin:0 auto clamp(2.4rem,5vw,3.4rem)}
+  .tcards{display:flex;flex-direction:column;gap:1.4rem;max-width:560px;margin:0 auto}
+  .tcard{background:#fff;border-radius:16px;padding:clamp(1.6rem,4vw,2.4rem);box-shadow:0 16px 40px rgba(20,15,10,.06)}
+  .tcard .logo-box{background:#fff;border:1px solid #eee;border-radius:10px;height:64px;display:flex;align-items:center;justify-content:center;margin-bottom:1.2rem;font-family:'Montserrat';font-weight:800;font-size:.72rem;letter-spacing:.06em;text-transform:uppercase;color:#b3aaa2}
+  .tcard .stars{color:var(--red);font-size:1.3rem;letter-spacing:3px;margin-bottom:1rem}
+  .tcard .q{font-family:'Manrope';font-style:italic;font-weight:700;font-size:clamp(1.2rem,2.6vw,1.5rem);color:var(--ink);line-height:1.35;margin-bottom:1.2rem}
+  .tcard .nm{font-family:'Montserrat';font-weight:900;font-size:1.25rem;color:var(--red)}
+  .tcard .st{font-family:'Montserrat';font-weight:700;font-size:.95rem;color:var(--muted);margin-top:.2rem}
+
+  /* ===== 7. FRONT-ROW SEAT (dark) ===== */
+  .seat{background:var(--dark);padding:clamp(3rem,7vw,5.5rem) 0;text-align:center}
+  .seat h2{font-size:clamp(2.4rem,7vw,4rem);line-height:1.02;margin-bottom:clamp(2.4rem,5vw,3.4rem)}
+  .arrows{text-align:left;max-width:600px;margin:0 auto clamp(2.6rem,5vw,3.6rem);display:flex;flex-direction:column;gap:clamp(2rem,4vw,2.8rem)}
+  .arrow{display:flex;gap:1rem;align-items:flex-start}
+  .arrow .ic{flex:none;color:var(--red-2);margin-top:.15em}
+  .arrow p{color:#D9D3CB;font-size:clamp(1.15rem,2.4vw,1.45rem);font-weight:500;line-height:1.42}
+  .rule{max-width:600px;margin:0 auto;border:0;border-top:1px solid rgba(250,247,242,.12)}
+
+  /* ===== 8. LIMITED (dark) ===== */
+  .limited{background:var(--dark);padding:clamp(2.5rem,5vw,3.5rem) 0 clamp(3rem,7vw,5rem);text-align:center}
+  .limited h2{font-size:clamp(2.4rem,7vw,4rem);line-height:1.04;margin-bottom:clamp(2rem,4vw,2.6rem)}
+  .limited p{color:#D9D3CB;font-size:clamp(1.15rem,2.4vw,1.4rem);max-width:52ch;margin:0 auto 1.4rem;font-weight:500;line-height:1.5}
+  .limited p b{color:#fff;font-weight:800}
+  .limited .cta{margin-top:1.4rem}
+
+  /* ===== FOOTER ===== */
+  footer{background:#060505;padding:1.8rem 0;text-align:center;color:var(--muted)}
+  footer .fl{font-family:'Manrope';font-size:.95rem}
+  footer .fl b{color:#cfc7bf;font-weight:700}
+
+  /* ===== REGISTER MODAL ===== */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;z-index:100;padding:1.2rem}
+  .overlay.open{display:flex}
+  .modal{background:var(--dark-2);border:1px solid #2a2622;border-radius:18px;max-width:440px;width:100%;padding:clamp(1.6rem,4vw,2.2rem);box-shadow:0 30px 80px rgba(0,0,0,.6);position:relative}
+  .modal h3{font-family:'Montserrat';font-weight:900;font-size:1.5rem;color:#fff;text-transform:uppercase;text-align:center;margin-bottom:.4rem;line-height:1.05}
+  .modal .ms{text-align:center;color:var(--muted-light);font-size:.95rem;margin-bottom:1.4rem}
+  .modal .close{position:absolute;top:.9rem;right:1rem;background:none;border:0;color:var(--muted);font-size:1.6rem;cursor:pointer;line-height:1}
+
+  /* ===== FORM STYLES ===== */
+  .modal form{display:flex;flex-direction:column;gap:.85rem}
+  .modal .field-group{display:flex;flex-direction:column;gap:.35rem}
+  .modal .field-group label{font-family:'Montserrat';font-weight:700;font-size:.72rem;letter-spacing:.1em;text-transform:uppercase;color:var(--muted-light)}
+  .modal .field-group input{background:#1c1a17;border:1px solid #2a2622;border-radius:10px;padding:.85rem 1rem;color:#fff;font-family:'Manrope',sans-serif;font-size:1rem;outline:none;transition:border-color .15s}
+  .modal .field-group input:focus{border-color:var(--red)}
+  .modal .field-group input[aria-invalid="true"]{border-color:var(--red)}
+  .modal .field-error{font-family:'Manrope';font-size:.8rem;color:var(--red-2);min-height:1.2em}
+  .modal .form-submit{width:100%;cursor:pointer;font-family:'Montserrat';font-weight:900;font-size:1.1rem;letter-spacing:.02em;text-transform:uppercase;color:#fff;
+    padding:1em 1.2em;border:0;border-radius:14px;background:var(--grad);box-shadow:0 0 44px rgba(206,17,38,.55),0 10px 24px rgba(206,17,38,.35);transition:transform .15s;margin-top:.2rem}
+  .modal .form-submit:hover:not(:disabled){transform:translateY(-2px)}
+  .modal .form-submit:disabled{opacity:.6;cursor:not-allowed}
+
+  @media (max-width:520px){
+    .cta{font-size:1.15rem;border-radius:14px}
+    .cd .u{min-width:52px}
+    .trust .lg{width:170px;height:92px}
+  }
+  </style>
+
+  <!-- 1. COUNTDOWN BAR -->
+  <div class="cbar">
+    <div class="wrap">
+      <div class="row">
+        <span class="lbl"><span class="dot"></span>Masterclass:</span>
+        <span class="date">Tuesday, July 7th @ 6:00 PM ET</span>
+      </div>
+      <div class="row"><span class="starts">Starts in: <span class="t"><span id="b-d">00</span>D</span> : <span class="t"><span id="b-h">00</span>H</span> : <span class="t"><span id="b-m">00</span>M</span> : <span class="t"><span id="b-s">00</span>S</span></span></div>
+    </div>
+  </div>
+
+  <!-- 2. HERO -->
+  <section class="hero">
+    <div class="wrap">
+      <a class="logo" href="/">
+        <svg class="mk" viewBox="0 0 48 48" fill="none"><ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#FAF7F2" stroke-width="1.6"/><ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#FAF7F2" stroke-width="1.4" opacity=".5"/><circle cx="24" cy="21" r="13" stroke="#FAF7F2" stroke-width="1.8"/><path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/></svg>
+        <span><span class="w1">Hot Tub</span><span class="w2">Launch</span></span>
+      </a>
+      <div class="kick">Free Masterclass for Hot Tub Store Owners Already Investing in Marketing</div>
+      <h1 class="big grad-text">How Hot Tub Stores are Using AI to Get 50% More Buyers.</h1>
+      <p class="sub">Get the 3-part AI playbook growth-minded hot tub stores use to fill their showroom with qualified buyers, move aging inventory, and stop losing sales to competitors — practical, proven steps you can start using this week.</p>
+      <div class="date-big">Tuesday, July 7th<br>@ 6:00 PM ET</div>
+      <button class="cta register">Register for Free</button>
+    </div>
+  </section>
+
+  <!-- 3. COUNTDOWN + HOSTS -->
+  <section class="hostsec">
+    <div class="wrap">
+      <div class="nospam">No spam. Unsubscribe anytime.</div>
+      <div class="cd">
+        <div class="u"><div class="n" id="c-d">00</div><div class="k">Days</div></div>
+        <div class="sep">:</div>
+        <div class="u"><div class="n" id="c-h">00</div><div class="k">Hrs</div></div>
+        <div class="sep">:</div>
+        <div class="u"><div class="n" id="c-m">00</div><div class="k">Min</div></div>
+        <div class="sep">:</div>
+        <div class="u"><div class="n" id="c-s">00</div><div class="k">Sec</div></div>
+      </div>
+      <div class="hosts-media"><span>Photo: you / your team<br>in a hot tub showroom<br>(real photo — never AI)</span></div>
+      <div class="seats">Limited to 100 Seats — Spots Are Filling Fast!</div>
+    </div>
+  </section>
+
+  <!-- 4. TRUST LOGOS -->
+  <section class="trust">
+    <div class="wrap">
+      <div class="lbl">Trusted by Hot Tub Stores Across the Country</div>
+      <div class="logos">
+        <div class="lg">[[ Client logo ]]</div>
+        <div class="lg">[[ Client logo ]]</div>
+        <div class="lg">[[ Client logo ]]</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 5. THIS IS FOR -->
+  <section class="forsec">
+    <div class="wrap">
+      <h2>This Is For Hot Tub Stores</h2>
+      <p class="sub">If any of these sound familiar, this masterclass was built for you.</p>
+      <div class="checks">
+        <div class="check"><svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><p>You're spending money on ads (Meta, Google, local co-op) but showroom traffic isn't consistent and inventory sits too long</p></div>
+        <div class="check"><svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><p>You know you're losing buyers because your team doesn't follow up fast enough — especially evenings and weekends</p></div>
+        <div class="check"><svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><p>You've been burned by generic agencies that don't understand hot tubs, unit margins, or seasonal buying cycles</p></div>
+        <div class="check"><svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><p>You want a predictable pipeline of qualified buyers at full margin — not more price-shoppers from lead aggregators</p></div>
+        <div class="check"><svg class="ic" width="28" height="28" viewBox="0 0 24 24" fill="none"><path d="M4 12.5l5 5L20 6.5" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg><p>You're ready to use AI to automate follow-up, book wet tests, and move more hot tubs without adding headcount</p></div>
+      </div>
+      <button class="cta register">Register for Free</button>
+    </div>
+  </section>
+
+  <!-- 6. REAL RESULTS -->
+  <section class="results">
+    <div class="wrap">
+      <h2>Real Hot Tub Stores. Real Results.</h2>
+      <p class="sub">Discover how stores are increasing showroom traffic, booking more wet tests, and selling more hot tubs every month.</p>
+      <div class="tcards">
+        <div class="tcard">
+          <div class="logo-box">[[ Client logo ]]</div>
+          <div class="stars">★★★★★</div>
+          <div class="q">"[[ Real client quote — e.g. First month with Hot Tub Launch: 22 booked appointments. 14 closed. Paid for itself in week one. ]]"</div>
+          <div class="nm">[[ Name ]]</div>
+          <div class="st">[[ Store name ]]</div>
+        </div>
+        <div class="tcard">
+          <div class="logo-box">[[ Client logo ]]</div>
+          <div class="stars">★★★★★</div>
+          <div class="q">"[[ Real client quote — e.g. Now we're moving inventory 3x faster. Had to order more units. The AI follow-up is unreal. ]]"</div>
+          <div class="nm">[[ Name ]]</div>
+          <div class="st">[[ Store name ]]</div>
+        </div>
+        <div class="tcard">
+          <div class="logo-box">[[ Client logo ]]</div>
+          <div class="stars">★★★★★</div>
+          <div class="q">"[[ Real client quote — e.g. Went from a 14% close rate to 41%. The AI responds before my competitor even sees the lead. ]]"</div>
+          <div class="nm">[[ Name ]]</div>
+          <div class="st">[[ Store name ]]</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 7. FRONT-ROW SEAT -->
+  <section class="seat">
+    <div class="wrap">
+      <h2 class="grad-text">You'll Get a Front-Row Seat To:</h2>
+      <div class="arrows">
+        <div class="arrow"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l10 6-10 6z"/></svg><p>The "90-second window" behind every hot tub inquiry online — you're competing in it whether you know it or not, and most stores lose every round without ever seeing the scoreboard.</p></div>
+        <div class="arrow"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l10 6-10 6z"/></svg><p>Why the store stealing your buyers isn't bigger than you, doesn't outspend you, and often has a smaller showroom — they've just figured out one thing about follow-up speed that you haven't yet.</p></div>
+        <div class="arrow"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l10 6-10 6z"/></svg><p>The 4-minute mistake that silently kills 80% of the money you spend on leads — it happens after the form fills, it's invisible on every report your agency sends you, and you're almost certainly making it today.</p></div>
+        <div class="arrow"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l10 6-10 6z"/></svg><p>How a handful of hot tub stores are booking wet tests at 10pm, on Sundays, and while the owner is off the clock — no extra staff, no answering service, no one picking up a phone.</p></div>
+        <div class="arrow"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l10 6-10 6z"/></svg><p>The uncomfortable reason your ad budget "isn't working" — it's not your inventory, your market, or your pricing, and the agency running your ads will never tell you what it actually is.</p></div>
+        <div class="arrow"><svg class="ic" width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M4 6l10 6-10 6z"/></svg><p>The single metric that decides who wins every hot tub sale in your market — once you see where you fall on it, you won't look at your missed-lead log the same way again.</p></div>
+      </div>
+      <button class="cta register">Register for Free</button>
+    </div>
+  </section>
+
+  <!-- 8. LIMITED -->
+  <section class="limited">
+    <div class="wrap">
+      <h2 class="grad-text">This Is a Live Masterclass, Limited to 100 Attendees.</h2>
+      <p>We've run this exact session twice. Both times, store owners asked us to take it down afterward — because once their competitors saw it, their edge started shrinking.</p>
+      <p><b>So this is the last time we're running it open.</b> No replay link, no recording, no "catch it later." You're in the room, or you're on the wrong side of it.</p>
+      <button class="cta register">Register for Free</button>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap"><span class="fl">© 2026 Hot Tub Launch · <b>Privacy Policy</b> · <b>Terms</b></span></div>
+  </footer>
+
+  <!-- REGISTER MODAL — native form posting to /api/lead -->
+  <div class="overlay" id="overlay">
+    <div class="modal">
+      <button class="close" id="closeModal" aria-label="Close">×</button>
+      <h3>Save Your Seat</h3>
+      <div class="ms">Tuesday, July 7th @ 6:00 PM ET · Limited to 100</div>
+
+      <form id="webinar-form" action="/api/lead" method="POST" novalidate>
+        <!-- Hidden tracking fields -->
+        <input type="hidden" name="leadUuid" id="wLeadUuid" value="" />
+        <input type="hidden" name="eventId" id="wEventId" value="" />
+        <input type="hidden" name="fbp" id="wFbp" value="" />
+        <input type="hidden" name="fbc" id="wFbc" value="" />
+        <input type="hidden" name="fbclid" id="wFbclid" value="" />
+        <input type="hidden" name="utmSource" id="wUtmSource" value="" />
+        <input type="hidden" name="utmMedium" id="wUtmMedium" value="" />
+        <input type="hidden" name="utmCampaign" id="wUtmCampaign" value="" />
+        <input type="hidden" name="utmContent" id="wUtmContent" value="" />
+        <input type="hidden" name="utmTerm" id="wUtmTerm" value="" />
+        <input type="hidden" name="landingUrl" id="wLandingUrl" value="" />
+
+        <div class="field-group">
+          <label for="wName">First Name</label>
+          <input id="wName" name="name" type="text" required autocomplete="given-name" placeholder="Your first name" />
+          <span class="field-error" data-error-for="name"></span>
+        </div>
+
+        <div class="field-group">
+          <label for="wLastName">Last Name</label>
+          <input id="wLastName" name="lastName" type="text" autocomplete="family-name" placeholder="Your last name" />
+        </div>
+
+        <div class="field-group">
+          <label for="wEmail">Email Address</label>
+          <input id="wEmail" name="email" type="email" required autocomplete="email" placeholder="your@email.com" />
+          <span class="field-error" data-error-for="email"></span>
+        </div>
+
+        <div class="field-group">
+          <label for="wPhone">Phone Number</label>
+          <input id="wPhone" name="phone" type="tel" autocomplete="tel" placeholder="(979) 459-9221" />
+        </div>
+
+        <button class="form-submit" type="submit" data-submit>Register for Free</button>
+      </form>
+    </div>
+  </div>
+
+  <script is:inline>
+  (function () {
+    /* ===== TARGET DATE — set your webinar date/time here (this example: July 7, 2026, 6:00 PM EDT) ===== */
+    var TARGET = Date.UTC(2026, 6, 7, 22, 0, 0); // month is 0-indexed; 22:00 UTC = 6PM EDT
+
+    function pad(n){return String(n).padStart(2,'0')}
+    function tick(){
+      var diff=Math.max(0, TARGET - Date.now());
+      var d=Math.floor(diff/86400000), h=Math.floor(diff/3600000)%24, m=Math.floor(diff/60000)%60, s=Math.floor(diff/1000)%60;
+      ['b-d','c-d'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=pad(d)});
+      ['b-h','c-h'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=pad(h)});
+      ['b-m','c-m'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=pad(m)});
+      ['b-s','c-s'].forEach(function(id){var e=document.getElementById(id);if(e)e.textContent=pad(s)});
+    }
+    tick(); setInterval(tick,1000);
+
+    /* register modal */
+    var overlay=document.getElementById('overlay');
+    document.querySelectorAll('.register').forEach(function(b){b.addEventListener('click',function(){overlay.classList.add('open')})});
+    document.getElementById('closeModal').addEventListener('click',function(){overlay.classList.remove('open')});
+    overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('open')});
+
+    /* ===== FORM: tracking capture, validation, fbq Lead fire ===== */
+    var formEl = document.getElementById('webinar-form');
+    if (!formEl) return;
+
+    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function value(name) {
+      var input = formEl.elements.namedItem(name);
+      return input instanceof HTMLInputElement ? input.value.trim() : '';
+    }
+
+    function setError(name, message) {
+      var input = formEl.elements.namedItem(name);
+      var slot = formEl.querySelector('[data-error-for="' + name + '"]');
+      if (input instanceof HTMLInputElement) {
+        input.setAttribute('aria-invalid', message ? 'true' : 'false');
+      }
+      if (slot) slot.textContent = message;
+    }
+
+    function validate() {
+      var name = value('name');
+      var email = value('email');
+      var next = {
+        name: name.length >= 2 ? '' : 'Enter your first name.',
+        email: emailRe.test(email) ? '' : 'Enter a valid email address.',
+      };
+      setError('name', next.name);
+      setError('email', next.email);
+      return !next.name && !next.email;
+    }
+
+    // Capture tracking params from URL and cookies
+    function captureTracking() {
+      var params = new URLSearchParams(window.location.search);
+      function get(id) {
+        var el = document.getElementById(id);
+        return el instanceof HTMLInputElement ? el : null;
+      }
+
+      // leadUuid + eventId
+      var lu = params.get('leadUuid') || (function(){ try{ return sessionStorage.getItem('lead_uuid') || ''; }catch(e){return ''} })();
+      var ei = params.get('eventId') || (function(){ try{ return sessionStorage.getItem('event_id') || ''; }catch(e){return ''} })();
+      if (!lu) {
+        lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+        try { sessionStorage.setItem('lead_uuid', lu); } catch(e) {}
+      }
+      if (!ei) {
+        ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
+        try { sessionStorage.setItem('event_id', ei); } catch(e) {}
+      }
+
+      var hlu = get('wLeadUuid'); if (hlu) hlu.value = lu;
+      var hei = get('wEventId'); if (hei) hei.value = ei;
+
+      // UTMs
+      var utmFields = ['utmSource','utmMedium','utmCampaign','utmContent','utmTerm'];
+      utmFields.forEach(function (f) {
+        var stored = null;
+        try { stored = sessionStorage.getItem(f); } catch(e) {}
+        var fromUrl = params.get(f);
+        var val = fromUrl || stored || '';
+        if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch(e) {} }
+        var h = get('w' + f.charAt(0).toUpperCase() + f.slice(1));
+        if (h) h.value = val;
+      });
+
+      // fbclid
+      var fbclid = params.get('fbclid') || '';
+      var hfbclid = get('wFbclid'); if (hfbclid) hfbclid.value = fbclid;
+
+      // fbp / fbc from Meta cookies
+      var fbp = '';
+      var fbc = '';
+      document.cookie.split('; ').forEach(function (c) {
+        if (c.startsWith('_fbp=')) fbp = c.slice(5);
+        if (c.startsWith('_fbc=')) fbc = c.slice(5);
+      });
+      var hfbp = get('wFbp'); if (hfbp) hfbp.value = fbp;
+      var hfbc = get('wFbc');
+      if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
+
+      // landing url
+      var landing = null;
+      try { landing = sessionStorage.getItem('landing_url'); } catch(e) {}
+      if (!landing) landing = window.location.href.split('?')[0];
+      try { if (!sessionStorage.getItem('landing_url')) sessionStorage.setItem('landing_url', landing); } catch(e) {}
+      var hl = get('wLandingUrl'); if (hl) hl.value = landing;
+    }
+
+    // Run tracking capture on page load
+    captureTracking();
+
+    formEl.addEventListener('submit', function (event) {
+      if (!validate()) {
+        event.preventDefault();
+        return;
+      }
+
+      // Fire Pixel Lead event with matching event_id
+      var eidEl = document.getElementById('wEventId');
+      var eid = eidEl instanceof HTMLInputElement ? eidEl.value : '';
+      if (typeof fbq === 'function' && eid) {
+        fbq('track', 'Lead', {}, { eventID: eid });
+      }
+
+      try {
+        sessionStorage.setItem('lead_name', value('name'));
+        sessionStorage.setItem('lead_email', value('email'));
+      } catch(err) {}
+
+      var button = formEl.querySelector('[data-submit]');
+      if (button instanceof HTMLButtonElement) {
+        button.disabled = true;
+      }
+    });
+  })();
+  </script>
+</Layout>

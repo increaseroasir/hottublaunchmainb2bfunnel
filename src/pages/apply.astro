@@ -1,11 +1,15 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AttributionFields from '../components/AttributionFields.astro';
+import { CONSENT_TEXT } from '../data/consent';
+const search = Astro.url.search;
 ---
 
 <Layout
   title="Apply for Your Market — Hot Tub Launch"
   description="Apply for a quick call to see if your market is still open — and how we turn the buyers you've already earned into predictable sales. By application only, one store per market."
   pageClass="apply-page"
+  robots="noindex"
 >
   <style is:global>
     /* ===== Apply page overrides & additions ===== */
@@ -503,32 +507,22 @@ import Layout from '../layouts/Layout.astro';
           <p class="ps">Two minutes. We'll check your territory and come back to you personally.</p>
 
           <form id="applyForm" action="/api/lead" method="POST" novalidate>
-            <!-- Hidden tracking fields -->
-            <input type="hidden" name="leadUuid" id="leadUuid" value="" />
-            <input type="hidden" name="eventId" id="eventId" value="" />
-            <input type="hidden" name="fbp" id="fbp" value="" />
-            <input type="hidden" name="fbc" id="fbc" value="" />
-            <input type="hidden" name="fbclid" id="fbclid" value="" />
-            <input type="hidden" name="utmSource" id="utmSource" value="" />
-            <input type="hidden" name="utmMedium" id="utmMedium" value="" />
-            <input type="hidden" name="utmCampaign" id="utmCampaign" value="" />
-            <input type="hidden" name="utmContent" id="utmContent" value="" />
-            <input type="hidden" name="utmTerm" id="utmTerm" value="" />
-            <input type="hidden" name="landingUrl" id="landingUrl" value="" />
+            <!-- Hidden tracking fields — server-rendered from attribution cookies (Lane B2) -->
+            <AttributionFields />
             <input type="hidden" name="quizAnswers" id="quizAnswers" value="" />
 
-            <!-- First Name → server "name" -->
+            <!-- First Name -->
             <div class="field">
               <label for="f-first">First Name <span class="req">*</span></label>
-              <input id="f-first" type="text" name="name" placeholder="First Name" autocomplete="given-name" required />
-              <span class="field-error" data-error-for="name"></span>
+              <input id="f-first" type="text" name="first_name" placeholder="First Name" autocomplete="given-name" required />
+              <span class="field-error" data-error-for="first_name"></span>
             </div>
 
-            <!-- Last Name → server "lastName" -->
+            <!-- Last Name -->
             <div class="field">
               <label for="f-last">Last Name <span class="req">*</span></label>
-              <input id="f-last" type="text" name="lastName" placeholder="Last Name" autocomplete="family-name" required />
-              <span class="field-error" data-error-for="lastName"></span>
+              <input id="f-last" type="text" name="last_name" placeholder="Last Name" autocomplete="family-name" required />
+              <span class="field-error" data-error-for="last_name"></span>
             </div>
 
             <!-- Email -->
@@ -560,6 +554,12 @@ import Layout from '../layouts/Layout.astro';
 
             <p class="privacy-note">Hot Tub Launch will use your contact information to review your application and reply about your market. You can unsubscribe at any time. See our <a href="/privacy">Privacy Policy</a> for details.</p>
 
+            <!-- Consent — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->
+            <label class="privacy-note" style="display:flex;gap:.6rem;align-items:flex-start;cursor:pointer;margin-bottom:1rem">
+              <input type="checkbox" name="terms" required style="margin-top:.2em;accent-color:#CE1126;flex:none;width:16px;height:16px" />
+              <span>{CONSENT_TEXT}</span>
+            </label>
+
             <button class="btn" type="submit" data-submit>Apply for Your Market</button>
           </form>
 
@@ -586,15 +586,15 @@ import Layout from '../layouts/Layout.astro';
         </div>
         <div class="fcol">
           <h4>Company</h4>
-          <a href="/#system">The System</a>
-          <a href="/#accept">Who We Accept</a>
-          <a href="/#faq">FAQ</a>
+          <a href={"/" + search + "#system"}>The System</a>
+          <a href={"/" + search + "#accept"}>Who We Accept</a>
+          <a href={"/" + search + "#faq"}>FAQ</a>
         </div>
         <div class="fcol">
           <h4>Get Started</h4>
-          <a href="/playbook">Profit Playbook</a>
-          <a href="/apply">Apply for Your Market</a>
-          <a href="/audit">Free Market Audit</a>
+          <a href={"/profit-playbook" + search}>Profit Playbook</a>
+          <a href={"/apply" + search}>Apply for Your Market</a>
+          <a href={"/check-territory" + search}>Free Market Audit</a>
         </div>
       </div>
       <div class="foot-legal">
@@ -604,190 +604,74 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </footer>
 
-  <script is:inline>
+  <!-- Capture/submit plumbing lives in src/lib/lead-client.ts (Lane B shared util).
+       This block is page-specific validation only. -->
+  <script>
+    import { wireLeadForm } from '../lib/lead-client';
+
     (function () {
-      var formEl = document.getElementById('applyForm');
-      if (!formEl) return;
+      const formNode = document.getElementById('applyForm');
+      if (!(formNode instanceof HTMLFormElement)) return;
+      const formEl = formNode;
 
-      var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      var phoneRe = /[0-9]{10,}/; // at least 10 digits anywhere
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRe = /[0-9]{10,}/; // at least 10 digits anywhere
 
-      function value(name) {
-        var input = formEl.elements.namedItem(name);
-        return (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) ? input.value.trim() : '';
+      function value(name: string): string {
+        const input = formEl.elements.namedItem(name) as { value?: string } | null;
+        return input && typeof input.value === 'string' ? input.value.trim() : '';
       }
 
-      function setError(name, message) {
-        var input = formEl.elements.namedItem(name);
-        var slot = formEl.querySelector('[data-error-for="' + name + '"]');
-        if (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) {
-          if (input.tagName === 'SELECT') {
-            input.style.borderColor = message ? '#F0475C' : '';
-          } else {
-            input.classList.toggle('has-error', !!message);
-          }
+      function setError(name: string, message: string) {
+        const input = formEl.elements.namedItem(name);
+        const slot = formEl.querySelector('[data-error-for="' + name + '"]');
+        if (input instanceof HTMLSelectElement) {
+          input.style.borderColor = message ? '#F0475C' : '';
+        } else if (input instanceof HTMLInputElement) {
+          input.classList.toggle('has-error', !!message);
         }
         if (slot) slot.textContent = message;
       }
 
-      function validate() {
-        var firstName = value('name');
-        var lastName = value('lastName');
-        var email = value('email');
-        var phone = value('phone');
-        var role = value('role');
+      function validate(): boolean {
+        const firstName = value('first_name');
+        const lastName = value('last_name');
+        const email = value('email');
+        const phone = value('phone');
+        const role = value('role');
+        const termsEl = formEl.elements.namedItem('terms');
+        const terms = termsEl instanceof HTMLInputElement ? termsEl.checked : false;
 
-        var eName = firstName.length >= 2 ? '' : 'First name is required (at least 2 characters).';
-        var eLast = lastName.length >= 2 ? '' : 'Last name is required (at least 2 characters).';
-        var eEmail = emailRe.test(email) ? '' : 'Please enter a valid email address.';
-        var ePhone = phoneRe.test(phone) ? '' : 'Please enter a valid phone number (at least 10 digits).';
-        var eRole = role ? '' : 'Please select your role.';
+        const eName = firstName.length >= 2 ? '' : 'First name is required (at least 2 characters).';
+        const eLast = lastName.length >= 2 ? '' : 'Last name is required (at least 2 characters).';
+        const eEmail = emailRe.test(email) ? '' : 'Please enter a valid email address.';
+        const ePhone = phoneRe.test(phone) ? '' : 'Please enter a valid phone number (at least 10 digits).';
+        const eRole = role ? '' : 'Please select your role.';
 
-        setError('name', eName);
-        setError('lastName', eLast);
+        setError('first_name', eName);
+        setError('last_name', eLast);
         setError('email', eEmail);
         setError('phone', ePhone);
         setError('role', eRole);
 
-        return !eName && !eLast && !eEmail && !ePhone && !eRole;
+        return !eName && !eLast && !eEmail && !ePhone && !eRole && terms;
       }
 
-      // Capture tracking params from URL and cookies
-      function captureTracking() {
-        var params = new URLSearchParams(window.location.search);
-
-        function getHidden(id) {
-          var el = document.getElementById(id);
-          return el instanceof HTMLInputElement ? el : null;
-        }
-
-        // leadUuid + eventId
-        var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
-        var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
-        if (!lu) {
-          lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-          try { sessionStorage.setItem('lead_uuid', lu); } catch (e) {}
-        }
-        if (!ei) {
-          ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-          try { sessionStorage.setItem('event_id', ei); } catch (e) {}
-        }
-
-        var hlu = getHidden('leadUuid'); if (hlu) hlu.value = lu;
-        var hei = getHidden('eventId'); if (hei) hei.value = ei;
-
-        // UTMs
-        var utmFields = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'];
-        utmFields.forEach(function (f) {
-          var stored = null;
-          try { stored = sessionStorage.getItem(f); } catch (e) {}
-          var fromUrl = params.get(f);
-          var val = fromUrl || stored || '';
-          if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch (e) {} }
-          var h = getHidden(f); if (h) h.value = val;
-        });
-
-        // fbclid
-        var fbclid = params.get('fbclid') || '';
-        var hfbclid = getHidden('fbclid'); if (hfbclid) hfbclid.value = fbclid;
-
-        // fbp / fbc from Meta cookies
-        var fbp = '';
-        var fbc = '';
-        try {
-          document.cookie.split('; ').forEach(function (c) {
-            if (c.startsWith('_fbp=')) fbp = c.slice(5);
-            if (c.startsWith('_fbc=')) fbc = c.slice(5);
-          });
-        } catch (e) {}
-        var hfbp = getHidden('fbp'); if (hfbp) hfbp.value = fbp;
-        var hfbc = getHidden('fbc'); if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
-
-        // landing url
-        var landing = '';
-        try { landing = sessionStorage.getItem('landing_url'); } catch (e) {}
-        if (!landing) {
-          landing = window.location.href.split('?')[0];
-          try { sessionStorage.setItem('landing_url', landing); } catch (e) {}
-        }
-        var hl = getHidden('landingUrl'); if (hl) hl.value = landing;
-      }
-
-      // Capture quiz answers from session storage
+      // Capture quiz answers from session storage (set by earlier funnel steps)
       function captureQuizAnswers() {
-        var answers = {};
-        var quizKeys = ['hasShowroom', 'monthlyVolume', 'challenge'];
-        quizKeys.forEach(function (k) {
-          var v = null;
-          try { v = sessionStorage.getItem(k); } catch (e) {}
+        const answers: Record<string, string> = {};
+        for (const k of ['hasShowroom', 'monthlyVolume', 'challenge']) {
+          let v: string | null = null;
+          try { v = sessionStorage.getItem(k); } catch {}
           if (v) answers[k] = v;
-        });
+        }
         if (Object.keys(answers).length > 0) {
-          var h = document.getElementById('quizAnswers');
+          const h = document.getElementById('quizAnswers');
           if (h instanceof HTMLInputElement) h.value = JSON.stringify(answers);
         }
       }
 
-      // Run tracking capture on page load
-      captureTracking();
-
-      // SHA-256 hex (matches server-side hashing in /api/lead)
-      async function sha256hex(str) {
-        var data = new TextEncoder().encode(str);
-        var digest = await crypto.subtle.digest('SHA-256', data);
-        return Array.from(new Uint8Array(digest)).map(function (b) { return b.toString(16).padStart(2, '0'); }).join('');
-      }
-      // Normalize phone the same way the server does (strip non-digits, 10-digit -> +1)
-      function normPhone(p) {
-        var d = String(p).replace(/\D/g, '');
-        if (d.startsWith('00')) d = d.slice(2);
-        if (d.length === 10) d = '1' + d;
-        return d;
-      }
-
-      formEl.addEventListener('submit', function (event) {
-        captureQuizAnswers();
-
-        if (!validate()) {
-          event.preventDefault();
-          return;
-        }
-
-        // Fire Pixel Lead event with matching event_id for deduplication
-        var eid = (document.getElementById('eventId') instanceof HTMLInputElement)
-          ? document.getElementById('eventId').value : '';
-        if (typeof fbq === 'function' && eid) {
-          // AAM: pass hashed user data (matches server CAPI hashes) so browser+server pair on same identity
-          var lu = (document.getElementById('leadUuid') instanceof HTMLInputElement)
-            ? document.getElementById('leadUuid').value : '';
-          Promise.all([
-            sha256hex(value('email').trim().toLowerCase()),
-            sha256hex(normPhone(value('phone'))),
-            sha256hex(value('name').trim().toLowerCase()),
-            sha256hex(value('lastName').trim().toLowerCase()),
-            lu ? sha256hex(lu) : Promise.resolve(''),
-          ]).then(function (h) {
-            fbq('init', '1200252438858536', {
-              em: h[0], ph: h[1], fn: h[2], ln: h[3], external_id: h[4] || undefined,
-            });
-            fbq('track', 'Lead', {}, {eventID: eid});
-          }).catch(function () {
-            fbq('track', 'Lead', {}, {eventID: eid});
-          });
-        }
-
-        // Persist lead info in session
-        try {
-          sessionStorage.setItem('lead_name', value('name'));
-          sessionStorage.setItem('lead_email', value('email'));
-        } catch (err) {}
-
-        // Disable button to prevent double submit
-        var button = formEl.querySelector('[data-submit]');
-        if (button instanceof HTMLButtonElement) {
-          button.disabled = true;
-        }
-      });
+      wireLeadForm({ form: formEl, validate, onBeforeSubmit: captureQuizAnswers });
     })();
   </script>
 </Layout>

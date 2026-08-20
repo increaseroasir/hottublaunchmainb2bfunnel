@@ -1,12 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AttributionFields from '../components/AttributionFields.astro';
+import { CONSENT_TEXT } from '../data/consent';
 ---
 
 <Layout
   title="Hot Tub Launch — One Store Per Market"
   description="We take one hot tub store per market. Zero setup fees. Full done-for-you sales growth system. One flat monthly price."
   pageClass="ppr-page"
-  robots="index, follow"
+  robots="noindex"
 >
   <style is:global>
     /* ===== PPR — ONE STORE PER MARKET / PAY-ONLY-FOR-RESULTS LANDING PAGE ===== */
@@ -279,31 +281,21 @@ import Layout from '../layouts/Layout.astro';
     <div class="form-card">
 
       <form id="pprForm" action="/api/lead" method="POST" novalidate>
-        <input type="hidden" name="leadUuid" id="leadUuid" value="" />
-        <input type="hidden" name="eventId" id="eventId" value="" />
-        <input type="hidden" name="fbp" id="fbp" value="" />
-        <input type="hidden" name="fbc" id="fbc" value="" />
-        <input type="hidden" name="fbclid" id="fbclid" value="" />
-        <input type="hidden" name="utmSource" id="utmSource" value="" />
-        <input type="hidden" name="utmMedium" id="utmMedium" value="" />
-        <input type="hidden" name="utmCampaign" id="utmCampaign" value="" />
-        <input type="hidden" name="utmContent" id="utmContent" value="" />
-        <input type="hidden" name="utmTerm" id="utmTerm" value="" />
-        <input type="hidden" name="landingUrl" id="landingUrl" value="" />
+        <AttributionFields />
         <input type="hidden" name="quizAnswers" id="quizAnswers" value="" />
 
         <!-- First Name -->
         <div class="ppr-field">
           <label for="f-first">First Name <span class="req">*</span></label>
-          <input id="f-first" type="text" name="name" placeholder="Your first name" autocomplete="given-name" required />
-          <span class="field-error" data-error-for="name"></span>
+          <input id="f-first" type="text" name="first_name" placeholder="Your first name" autocomplete="given-name" required />
+          <span class="field-error" data-error-for="first_name"></span>
         </div>
 
         <!-- Last Name -->
         <div class="ppr-field">
           <label for="f-last">Last Name <span class="req">*</span></label>
-          <input id="f-last" type="text" name="lastName" placeholder="Your last name" autocomplete="family-name" required />
-          <span class="field-error" data-error-for="lastName"></span>
+          <input id="f-last" type="text" name="last_name" placeholder="Your last name" autocomplete="family-name" required />
+          <span class="field-error" data-error-for="last_name"></span>
         </div>
 
         <!-- Email -->
@@ -375,10 +367,10 @@ import Layout from '../layouts/Layout.astro';
           </div>
         </div>
 
-        <!-- Terms -->
+        <!-- Terms — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->
         <div class="ppr-check">
           <input type="checkbox" id="f-terms" name="terms" required />
-          <label for="f-terms">I agree to terms &amp; conditions provided by Hot Tub Launch. By providing my phone number and email, I agree to receive messages from Hot Tub Launch regarding my application.</label>
+          <label for="f-terms">{CONSENT_TEXT}</label>
         </div>
 
         <button class="ppr-btn" type="submit" data-submit>Schedule Call →</button>
@@ -387,54 +379,60 @@ import Layout from '../layouts/Layout.astro';
   </div>
 
   <!-- ===== FORM JAVASCRIPT ===== -->
-  <script is:inline>
+  <!-- Capture/submit plumbing lives in src/lib/lead-client.ts (Lane B shared util).
+       This block is page-specific validation only. -->
+  <script>
+    import { wireLeadForm } from '../lib/lead-client';
+
     (function () {
-      var formEl = document.getElementById('pprForm');
-      if (!formEl) return;
+      const formNode = document.getElementById('pprForm');
+      if (!(formNode instanceof HTMLFormElement)) return;
+      const formEl = formNode;
 
-      var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      var phoneRe = /[0-9]{10,}/;
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      const phoneRe = /[0-9]{10,}/;
 
-      function value(name) {
-        var input = formEl.elements.namedItem(name);
-        return (input instanceof HTMLInputElement || input instanceof HTMLSelectElement) ? input.value.trim() : '';
+      // Handles inputs, selects AND RadioNodeList (the old instanceof-only
+      // check returned '' for radios, so radio validation always failed).
+      function value(name: string): string {
+        const input = formEl.elements.namedItem(name) as { value?: string } | null;
+        return input && typeof input.value === 'string' ? input.value.trim() : '';
       }
 
-      function setError(name, message) {
-        var input = formEl.elements.namedItem(name);
-        var slot = formEl.querySelector('[data-error-for="' + name + '"]');
-        if (input) {
-          if (input.tagName === 'SELECT') {
-            input.style.borderColor = message ? '#CE1126' : '';
-          } else {
-            input.setAttribute('aria-invalid', message ? 'true' : 'false');
-          }
+      function setError(name: string, message: string) {
+        const input = formEl.elements.namedItem(name);
+        const slot = formEl.querySelector('[data-error-for="' + name + '"]');
+        if (input instanceof HTMLSelectElement) {
+          input.style.borderColor = message ? '#CE1126' : '';
+        } else if (input instanceof HTMLInputElement) {
+          input.setAttribute('aria-invalid', message ? 'true' : 'false');
         }
         if (slot) slot.textContent = message;
       }
 
-      function validate() {
-        var firstName = value('name');
-        var lastName = value('lastName');
-        var email = value('email');
-        var phone = value('phone');
-        var businessName = value('businessName');
-        var state = value('state');
-        var isOwner = value('isOwner');
-        var monthlyVolume = value('monthlyVolume');
-        var terms = value('terms');
+      function validate(): boolean {
+        const firstName = value('first_name');
+        const lastName = value('last_name');
+        const email = value('email');
+        const phone = value('phone');
+        const businessName = value('businessName');
+        const state = value('state');
+        const isOwner = value('isOwner');
+        const monthlyVolume = value('monthlyVolume');
+        const termsEl = formEl.elements.namedItem('terms');
+        const terms = termsEl instanceof HTMLInputElement ? termsEl.checked : false;
 
-        var eName = firstName.length >= 2 ? '' : 'First name is required.';
-        var eLast = lastName.length >= 2 ? '' : 'Last name is required.';
-        var eEmail = emailRe.test(email) ? '' : 'Enter a valid email address.';
-        var ePhone = phoneRe.test(phone) ? '' : 'Enter a valid phone number.';
-        var eBusiness = businessName ? '' : 'Store name is required.';
-        var eState = state ? '' : 'Select your state.';
-        var eOwner = isOwner ? '' : 'Select an option.';
-        var eVolume = monthlyVolume ? '' : 'Select an option.';
+        const eName = firstName.length >= 2 ? '' : 'First name is required.';
+        const eLast = lastName.length >= 2 ? '' : 'Last name is required.';
+        const eEmail = emailRe.test(email) ? '' : 'Enter a valid email address.';
+        const ePhone = phoneRe.test(phone) ? '' : 'Enter a valid phone number.';
+        const eBusiness = businessName ? '' : 'Store name is required.';
+        const eState = state ? '' : 'Select your state.';
+        const eOwner = isOwner ? '' : 'Select an option.';
+        const eVolume = monthlyVolume ? '' : 'Select an option.';
 
-        setError('name', eName);
-        setError('lastName', eLast);
+        setError('first_name', eName);
+        setError('last_name', eLast);
         setError('email', eEmail);
         setError('phone', ePhone);
         setError('businessName', eBusiness);
@@ -443,87 +441,7 @@ import Layout from '../layouts/Layout.astro';
         return !eName && !eLast && !eEmail && !ePhone && !eBusiness && !eState && !eOwner && !eVolume && terms;
       }
 
-      function captureTracking() {
-        var params = new URLSearchParams(window.location.search);
-
-        function getHidden(id) {
-          var el = document.getElementById(id);
-          return el instanceof HTMLInputElement ? el : null;
-        }
-
-        // leadUuid + eventId
-        var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
-        var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
-        if (!lu) {
-          lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-          try { sessionStorage.setItem('lead_uuid', lu); } catch (e) {}
-        }
-        if (!ei) {
-          ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-          try { sessionStorage.setItem('event_id', ei); } catch (e) {}
-        }
-
-        var hlu = getHidden('leadUuid'); if (hlu) hlu.value = lu;
-        var hei = getHidden('eventId'); if (hei) hei.value = ei;
-
-        // UTMs
-        var utmFields = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'];
-        utmFields.forEach(function (f) {
-          var stored = null;
-          try { stored = sessionStorage.getItem(f); } catch (e) {}
-          var fromUrl = params.get(f);
-          var val = fromUrl || stored || '';
-          if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch (e) {} }
-          var h = getHidden(f); if (h) h.value = val;
-        });
-
-        // fbclid
-        var fbclid = params.get('fbclid') || '';
-        var hfbclid = getHidden('fbclid'); if (hfbclid) hfbclid.value = fbclid;
-
-        // fbp / fbc
-        var fbp = '';
-        var fbc = '';
-        try {
-          document.cookie.split('; ').forEach(function (c) {
-            if (c.startsWith('_fbp=')) fbp = c.slice(5);
-            if (c.startsWith('_fbc=')) fbc = c.slice(5);
-          });
-        } catch (e) {}
-        var hfbp = getHidden('fbp'); if (hfbp) hfbp.value = fbp;
-        var hfbc = getHidden('fbc'); if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
-
-        // landing url
-        var landing = '';
-        try { landing = sessionStorage.getItem('landing_url'); } catch (e) {}
-        if (!landing) {
-          landing = window.location.href.split('?')[0];
-          try { sessionStorage.setItem('landing_url', landing); } catch (e) {}
-        }
-        var hl = getHidden('landingUrl'); if (hl) hl.value = landing;
-      }
-
-      captureTracking();
-
-      formEl.addEventListener('submit', function (event) {
-        if (!validate()) {
-          event.preventDefault();
-          return;
-        }
-
-        // Fire Pixel Lead event with matching event_id for deduplication
-        var eid = (document.getElementById('eventId') instanceof HTMLInputElement)
-          ? document.getElementById('eventId').value : '';
-        if (typeof fbq === 'function' && eid) {
-          fbq('track', 'Lead', {}, {eventID: eid});
-        }
-
-        // Disable button to prevent double submit
-        var button = formEl.querySelector('[data-submit]');
-        if (button instanceof HTMLButtonElement) {
-          button.disabled = true;
-        }
-      });
+      wireLeadForm({ form: formEl, validate });
     })();
   </script>
 </Layout>

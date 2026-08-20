@@ -1,5 +1,7 @@
 ---
 import Layout from '../layouts/Layout.astro';
+// B3: every CTA toward a form carries the current query string
+const search = Astro.url.search;
 ---
 <!--
   HOT TUB LAUNCH — FULL HOMEPAGE BUILD
@@ -382,7 +384,7 @@ import Layout from '../layouts/Layout.astro';
 
   <div class="stickyhead">
     <!-- ANNOUNCEMENT BAR — swap for whichever market status is true right now -->
-    <div class="annbar"><span class="dot"></span>By application only · One store per market · A limited number of 2026 territories remain<a href="/apply">Apply now →</a></div>
+    <div class="annbar"><span class="dot"></span>By application only · One store per market · A limited number of 2026 territories remain<a href={"/apply" + search}>Apply now →</a></div>
 
     <!-- NAV -->
     <nav class="topnav">
@@ -396,8 +398,8 @@ import Layout from '../layouts/Layout.astro';
         <a href="#mechanism">The System</a>
         <a href="#leaks">The Seven Leaks</a>
         <a href="#cases">Proof</a>
-        <a href="/profit-playbook/" class="newpill"><span class="newdot"></span>New: Free Playbook</a>
-        <a class="navcta btn btn--primary" href="/apply" style="padding:.7em 1.3em;font-size:.72rem">Apply</a>
+        <a href={"/profit-playbook/" + search} class="newpill"><span class="newdot"></span>New: Free Playbook</a>
+        <a class="navcta btn btn--primary" href={"/apply" + search} style="padding:.7em 1.3em;font-size:.72rem">Apply</a>
       </div>
       <button class="navburger" id="navBurger" aria-label="Open menu" aria-expanded="false" aria-controls="navLinks">
         <span></span><span></span><span></span>
@@ -413,7 +415,7 @@ import Layout from '../layouts/Layout.astro';
     <span class="kicker2">Your traffic is flowing.</span>
     <h1>But your bucket has <span class="red">holes.</span></h1>
     <p class="sub">Your store is a bucket. Every buyer in your market is water being poured in — but the bucket has holes. We find every leak, seal it, then pour fuel.</p>
-    <a class="btn btn--primary" href="/apply">Apply for Your Market<span class="arrow">→</span></a>
+    <a class="btn btn--primary" href={"/apply" + search}>Apply for Your Market<span class="arrow">→</span></a>
 
     <div class="stage">
       <div class="fcard c1">
@@ -632,7 +634,7 @@ import Layout from '../layouts/Layout.astro';
           <div class="statlab">How Paradise Spas sealed the leaks — then poured fuel.</div>
           <div class="name">Paradise Spas</div>
           <div class="loc">Minot, ND</div>
-          <a class="readmore" href="/case-study/">Read the full story →</a>
+          <a class="readmore" href={"/case-study/" + search}>Read the full story →</a>
         </div>
         <div class="case-card reveal d4 lift">
           <span class="tag">Hot Tub Store</span>
@@ -640,7 +642,7 @@ import Layout from '../layouts/Layout.astro';
           <div class="statlab">How The Hot Tub Store sealed the leaks — then poured fuel.</div>
           <div class="name">The Hot Tub Store</div>
           <div class="loc">Rochester/Macomb, MI</div>
-          <a class="readmore" href="/case-study/">Read the full story →</a>
+          <a class="readmore" href={"/case-study/" + search}>Read the full story →</a>
         </div>
       </div>
     </div>
@@ -655,7 +657,7 @@ import Layout from '../layouts/Layout.astro';
           <span class="eyebrow">Free guide</span>
           <h3>The 2026 Hot Tub Store AI Profit Playbook</h3>
           <p>The system to find the hidden leak capping your sales, and the 5-step way to turn more visitors into booked appointments — no fluff, no fake numbers.</p>
-          <a class="btn btn--outline" href="/profit-playbook/">Get the Playbook</a>
+          <a class="btn btn--outline" href={"/profit-playbook/" + search}>Get the Playbook</a>
         </div>
       </div>
     </div>
@@ -708,7 +710,7 @@ import Layout from '../layouts/Layout.astro';
       <span class="eyebrow reveal" style="justify-content:center">Turn the buyers you've already earned into predictable sales</span>
       <h2 class="reveal d1">Apply for your market.</h2>
       <p class="reveal d2">Most applications get a no. If your market's still open, the audit is free — and it's the first leak we find together.</p>
-      <a class="btn btn--primary reveal d3" href="/apply">Apply for Your Market<span class="arrow">→</span></a>
+      <a class="btn btn--primary reveal d3" href={"/apply" + search}>Apply for Your Market<span class="arrow">→</span></a>
     </div>
   </section>
 
@@ -734,8 +736,8 @@ import Layout from '../layouts/Layout.astro';
           <a href="#market">Open Markets</a>
         </div>
         <div class="fcol"><h4>Get Started</h4>
-          <a href="/apply">Apply for Your Market</a>
-          <a href="/apply">Free Audit</a>
+          <a href={"/apply" + search}>Apply for Your Market</a>
+          <a href={"/apply" + search}>Free Audit</a>
         </div>
       </div>
       <div class="foot-bottom">
@@ -756,7 +758,7 @@ import Layout from '../layouts/Layout.astro';
         <button id="cpanelClose" aria-label="Close">&times;</button>
       </div>
       <p>Most hot tub store sites lose visitors after a few seconds of load time. Want to know where yours stands?</p>
-      <a class="btn btn--primary" style="width:100%;justify-content:center;font-size:.74rem;padding:.9em 1rem" href="/apply">Get the Free Audit<span class="arrow">→</span></a>
+      <a class="btn btn--primary" style="width:100%;justify-content:center;font-size:.74rem;padding:.9em 1rem" href={"/apply" + search}>Get the Free Audit<span class="arrow">→</span></a>
     </div>
   </div>
 

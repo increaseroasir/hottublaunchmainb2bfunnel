@@ -10,3 +10,9 @@ migrations_dir = "db/migrations"
 
 [vars]
 SITE_URL = "https://hottublaunch.com"
+# GHL custom-field IDs (location AG47jEV5rVUrGLt5FlKO). Not secrets — plain
+# vars so the mapping is versioned and deploys atomically with the code.
+GHL_CF_LEAD_UUID_ID = "7U1vCjmta2NKYw45k0kJ"
+GHL_CF_CONSENT_TEXT_ID = "yqwZ8dJTywKdZbiZoVB8"
+GHL_CF_STORE_OWNER_ID = "yeioLAoCT7jHzCYWYEkF"
+GHL_CF_UNITS_PER_MONTH_ID = "gPNN7vcRqDYq6jGSwfdM"

@@ -383,6 +383,10 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
       if (cfConsent && consentGiven && consentText) {
         customFields.push({ id: cfConsent, value: `${consentText} | version=${consentVersion} | url=${consentUrl} | at=${consentAt}` });
       }
+      const cfStoreOwner = getEnv('GHL_CF_STORE_OWNER_ID');
+      if (cfStoreOwner && isOwner) customFields.push({ id: cfStoreOwner, value: isOwner });
+      const cfUnits = getEnv('GHL_CF_UNITS_PER_MONTH_ID');
+      if (cfUnits && monthlyVolume) customFields.push({ id: cfUnits, value: monthlyVolume });
       // Source/medium/campaign tags so the CRM is filterable by where the
       // lead came from. GHL auto-creates unknown tags on upsert — no setup.
       const tagSlug = (s: string) =>
@@ -410,6 +414,8 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         email,
         phone: phone || undefined,
         locationId: ghlLocationId,
+        companyName: businessName || undefined,
+        state: state || undefined,
         source: 'Hot Tub Launch B2B Website',
         tags,
       };

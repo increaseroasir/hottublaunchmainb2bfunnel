@@ -283,7 +283,22 @@ async function main() {
       d1Ok = rows.length === 1 && r.conversion_status === 'ok';
       if (stubAvailable) {
         const st = await stub('/__state');
-        ghlOk = st.ghl.some((g) => g.body?.email === EMAIL) && r.ghl_status === 'ok' && !!r.ghl_contact_id;
+        // The upsert must carry the full field mapping, not just identity:
+        // companyName/state as standard fields, and custom-field VALUES for
+        // lead_uuid, store owner, units/month, and a consent record with a
+        // timestamp. Values-based so the gate never hardcodes GHL field ids.
+        const g6rec = st.ghl.find((g) => g.body?.email === EMAIL);
+        const g6cf = (g6rec?.body?.customFields || []).map((f) => String(f.value));
+        const g6fields =
+          !!g6rec &&
+          g6rec.body?.companyName === 'Smoke Spa Co' &&
+          g6rec.body?.state === 'MI' &&
+          g6cf.includes(lead1?.leadUuid) &&
+          g6cf.includes('yes') &&
+          g6cf.includes('5-10') &&
+          g6cf.some((v) => v.includes('| at='));
+        ghlOk = !!g6rec && g6fields && r.ghl_status === 'ok' && !!r.ghl_contact_id;
+        if (!g6fields && g6rec) console.log(`        G6 field mapping missing: companyName=${g6rec.body?.companyName} state=${g6rec.body?.state} cf=${JSON.stringify(g6cf)}`);
         sheetOk = st.sheetRows.some((row) => row[1] === lead1?.leadUuid) && String(r.sheet_status || '').startsWith('ok');
         if (BREAK === 'ghl') {
           const ghlAlerts = st.alerts.filter((a) => a.body?.alert === 'GHL_UPSERT_FAILED').length;

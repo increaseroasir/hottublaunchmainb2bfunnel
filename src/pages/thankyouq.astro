@@ -1,7 +1,6 @@
 ---
 import Layout from '../layouts/Layout.astro';
 const title = 'Thank You — Hot Tub Launch';
-const calendarId = '2Cxr8gHsnc6xnMbeRPu9';
 ---
 
 <Layout title={title} robots="noindex">
@@ -85,17 +84,163 @@ const calendarId = '2Cxr8gHsnc6xnMbeRPu9';
       margin: 0 auto;
       padding: 0 1.2rem 2.4rem;
     }
-    .ty-calendar .cal-shell {
+    .cal-shell {
       background: #F8F6F2;
       border: 1.5px solid var(--htl-line);
       border-radius: 10px;
-      min-height: 420px;
-      overflow: hidden;
+      padding: 1.4rem 1.2rem;
     }
-    .ty-calendar .cal-shell iframe {
-      border: 0;
+
+    .cal-loading {
+      text-align: center;
+      color: var(--htl-muted);
+      padding: 2rem 0;
+      font-size: .95rem;
+    }
+    .cal-error {
+      text-align: center;
+      color: var(--htl-red);
+      padding: 2rem 0;
+      font-size: .95rem;
+    }
+
+    .cal-days {
+      display: flex;
+      gap: .5rem;
+      overflow-x: auto;
+      padding-bottom: .75rem;
+      margin-bottom: 1rem;
+      border-bottom: 1px solid var(--htl-line);
+      -webkit-overflow-scrolling: touch;
+    }
+    .cal-day {
+      flex: 0 0 auto;
+      min-width: 64px;
+      padding: .55rem .4rem;
+      text-align: center;
+      border: 1.5px solid var(--htl-line);
+      border-radius: 8px;
+      background: var(--htl-white);
+      cursor: pointer;
+      transition: all .15s ease;
+      user-select: none;
+    }
+    .cal-day:hover { border-color: var(--htl-red); }
+    .cal-day.sel {
+      background: var(--htl-ink);
+      border-color: var(--htl-ink);
+      color: var(--htl-cream);
+    }
+    .cal-day .dow {
+      display: block;
+      font-size: .66rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+      color: var(--htl-muted);
+    }
+    .cal-day.sel .dow { color: rgba(250,247,242,.7); }
+    .cal-day .daynum {
+      display: block;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.15rem;
+      line-height: 1.2;
+    }
+    .cal-day .mon {
+      display: block;
+      font-size: .62rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+      color: var(--htl-muted);
+    }
+    .cal-day.sel .mon { color: rgba(250,247,242,.7); }
+
+    .cal-slots-label {
+      font-size: .72rem;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--htl-muted);
+      margin-bottom: .6rem;
+    }
+    .cal-slots {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: .5rem;
+    }
+    .cal-slot {
+      padding: .6rem .4rem;
+      text-align: center;
+      border: 1.5px solid var(--htl-line);
+      border-radius: 8px;
+      background: var(--htl-white);
+      cursor: pointer;
+      font-weight: 600;
+      font-size: .92rem;
+      transition: all .15s ease;
+      user-select: none;
+    }
+    .cal-slot:hover { border-color: var(--htl-red); }
+    .cal-slot.sel {
+      background: var(--htl-red);
+      border-color: var(--htl-red);
+      color: var(--htl-white);
+    }
+
+    .cal-confirm {
+      margin-top: 1.2rem;
+      padding-top: 1rem;
+      border-top: 1px solid var(--htl-line);
+      text-align: center;
+    }
+    .cal-confirm .confirm-summary {
+      font-size: .95rem;
+      color: var(--htl-gray);
+      margin-bottom: .9rem;
+    }
+    .cal-confirm .confirm-summary strong {
+      color: var(--htl-ink);
+    }
+    .cal-book-btn {
+      display: inline-block;
       width: 100%;
-      height: 420px;
+      background: var(--htl-red);
+      color: var(--htl-white);
+      border: none;
+      border-radius: 8px;
+      padding: .95rem 1rem;
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1rem;
+      letter-spacing: .03em;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: background .15s ease;
+    }
+    .cal-book-btn:hover { background: var(--htl-red-dk); }
+    .cal-book-btn:disabled {
+      background: var(--htl-line);
+      cursor: not-allowed;
+    }
+    .cal-book-btn.busy { opacity: .7; }
+
+    .cal-done {
+      text-align: center;
+      padding: 1.4rem .6rem;
+    }
+    .cal-done .check {
+      font-size: 2.6rem;
+      margin-bottom: .6rem;
+    }
+    .cal-done h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.2rem;
+      color: var(--htl-ink);
+      margin-bottom: .4rem;
+    }
+    .cal-done p {
+      font-size: .95rem;
+      color: var(--htl-muted);
     }
 
     /* ---------- MIDDLE BAND ---------- */
@@ -133,10 +278,7 @@ const calendarId = '2Cxr8gHsnc6xnMbeRPu9';
       max-width: 220px;
       text-align: center;
     }
-    .ty-card .card-icon {
-      font-size: 1.8rem;
-      margin-bottom: .8rem;
-    }
+    .ty-card .card-icon { font-size: 1.8rem; margin-bottom: .8rem; }
     .ty-card h3 {
       font-family: 'Montserrat', sans-serif;
       font-weight: 800;
@@ -194,31 +336,28 @@ const calendarId = '2Cxr8gHsnc6xnMbeRPu9';
 
   <!-- ============ CALENDAR ============ -->
   <div class="ty-calendar">
-    <div class="cal-shell">
-      <iframe
-        src={ `https://api.leadconnectorhq.com/widget/booking/${calendarId}` }
-        title="Schedule a call"
-        loading="lazy">
-      </iframe>
+    <div class="cal-shell" id="cal-shell">
+      <div class="cal-loading" id="cal-loading">Loading available times&hellip;</div>
+
+      <div class="cal-days" id="cal-days" hidden></div>
+
+      <div id="cal-slots-wrap" hidden>
+        <div class="cal-slots-label">Available times</div>
+        <div class="cal-slots" id="cal-slots"></div>
+      </div>
+
+      <div class="cal-confirm" id="cal-confirm" hidden>
+        <div class="confirm-summary" id="confirm-summary"></div>
+        <button class="cal-book-btn" id="cal-book-btn" type="button">Book My Call</button>
+      </div>
+
+      <div class="cal-done" id="cal-done" hidden>
+        <div class="check">✅</div>
+        <h3>You're booked!</h3>
+        <p id="cal-done-text">A calendar invite is on its way to your inbox.</p>
+      </div>
     </div>
   </div>
-
-  <script>
-    // Schedule — server-deduped, reload-safe. Fires once per lead, ever.
-    (async () => {
-      try {
-        const res = await fetch('/api/lead-stage', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ event: 'Schedule' }),
-        });
-        const d = await res.json() as Record<string, unknown>;
-        if (d.ok && d.sent && d.duplicate === false && d.eventId && typeof fbq === 'function') {
-          fbq('track', 'Schedule', { value: d.value, currency: 'USD' }, { eventID: d.eventId });
-        }
-      } catch {}
-    })();
-  </script>
 
   <!-- ============ MIDDLE BAND ============ -->
   <div class="ty-band">
@@ -269,4 +408,143 @@ const calendarId = '2Cxr8gHsnc6xnMbeRPu9';
       </p>
     </div>
   </div>
+
+  <script>
+    // Custom GHL calendar — fetches free slots via /api/calendar-slots, books
+    // via /api/calendar-book (which creates the GHL appointment and fires the
+    // server-deduped Schedule event). No PIT key in the browser.
+    (() => {
+      const $ = (id: string) => document.getElementById(id) as HTMLElement;
+      const shell = $('cal-shell');
+      const loadingEl = $('cal-loading');
+      const daysEl = $('cal-days');
+      const slotsWrap = $('cal-slots-wrap');
+      const slotsEl = $('cal-slots');
+      const confirmEl = $('cal-confirm');
+      const summaryEl = $('confirm-summary');
+      const bookBtn = $('cal-book-btn') as HTMLButtonElement;
+      const doneEl = $('cal-done');
+      const doneText = $('cal-done-text');
+
+      let selectedSlot: string | null = null;
+      let slotMap: Record<string, string[]> = {};
+
+      const fmtTime = (iso: string) => {
+        const d = new Date(iso);
+        return d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+      };
+      const fmtDateLong = (iso: string) => {
+        const d = new Date(iso);
+        return d.toLocaleDateString([], { weekday: 'long', month: 'long', day: 'numeric' });
+      };
+
+      async function loadSlots() {
+        try {
+          const res = await fetch('/api/calendar-slots?timezone=America%2FNew_York&days=7');
+          const data = await res.json() as any;
+          if (!data.ok || !data.slots) throw new Error(data.error || 'No slots');
+          slotMap = data.slots;
+          renderDays();
+        } catch (e) {
+          loadingEl.textContent = 'Could not load available times. Please refresh or call us.';
+          loadingEl.classList.add('cal-error');
+        }
+      }
+
+      function renderDays() {
+        loadingEl.hidden = true;
+        const dates = Object.keys(slotMap).sort();
+        if (!dates.length) {
+          loadingEl.hidden = false;
+          loadingEl.textContent = 'No availability this week. Check back soon.';
+          return;
+        }
+        daysEl.hidden = false;
+        daysEl.innerHTML = '';
+        dates.forEach((dateKey, i) => {
+          const d = new Date(dateKey + 'T00:00:00');
+          const el = document.createElement('div');
+          el.className = 'cal-day' + (i === 0 ? ' sel' : '');
+          el.innerHTML =
+            `<span class="dow">${d.toLocaleDateString([], { weekday: 'short' })}</span>` +
+            `<span class="daynum">${d.getDate()}</span>` +
+            `<span class="mon">${d.toLocaleDateString([], { month: 'short' })}</span>`;
+          el.addEventListener('click', () => {
+            daysEl.querySelectorAll('.cal-day').forEach((x) => x.classList.remove('sel'));
+            el.classList.add('sel');
+            renderSlots(dateKey);
+          });
+          daysEl.appendChild(el);
+        });
+        renderSlots(dates[0]);
+      }
+
+      function renderSlots(dateKey: string) {
+        const slots = slotMap[dateKey] || [];
+        slotsWrap.hidden = false;
+        slotsEl.innerHTML = '';
+        selectedSlot = null;
+        confirmEl.hidden = true;
+        if (!slots.length) {
+          slotsEl.innerHTML = '<div class="cal-loading">No times available this day.</div>';
+          return;
+        }
+        slots.forEach((iso) => {
+          const btn = document.createElement('button');
+          btn.type = 'button';
+          btn.className = 'cal-slot';
+          btn.textContent = fmtTime(iso);
+          btn.addEventListener('click', () => {
+            slotsEl.querySelectorAll('.cal-slot').forEach((x) => x.classList.remove('sel'));
+            btn.classList.add('sel');
+            selectedSlot = iso;
+            summaryEl.innerHTML = `Your call is set for <strong>${fmtDateLong(iso)}</strong> at <strong>${fmtTime(iso)}</strong>.`;
+            confirmEl.hidden = false;
+          });
+          slotsEl.appendChild(btn);
+        });
+      }
+
+      async function book() {
+        if (!selectedSlot) return;
+        bookBtn.disabled = true;
+        bookBtn.classList.add('busy');
+        bookBtn.textContent = 'Booking…';
+        try {
+          const res = await fetch('/api/calendar-book', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ slot: selectedSlot }),
+          });
+          const data = await res.json() as any;
+          if (data.ok) {
+            // Fire the browser-side Schedule event for match quality, using
+            // the server-minted eventId. Server CAPI already deduped it.
+            if (data.schedule && data.schedule.eventId && typeof (window as any).fbq === 'function') {
+              (window as any).fbq('track', 'Schedule',
+                { value: data.schedule.value, currency: data.schedule.currency },
+                { eventID: data.schedule.eventId });
+            }
+            daysEl.hidden = true;
+            slotsWrap.hidden = true;
+            confirmEl.hidden = true;
+            doneEl.hidden = false;
+            if (data.appointment && data.appointment.slot) {
+              doneText.textContent = `Your call is confirmed for ${fmtDateLong(data.appointment.slot)} at ${fmtTime(data.appointment.slot)}. A calendar invite is on its way to your inbox.`;
+            }
+          } else {
+            throw new Error(data.error || 'Booking failed');
+          }
+        } catch (e) {
+          bookBtn.disabled = false;
+          bookBtn.classList.remove('busy');
+          bookBtn.textContent = 'Book My Call';
+          alert('Could not book that time. Please pick another or call us.');
+        }
+      }
+
+      bookBtn.addEventListener('click', book);
+      loadSlots();
+    })();
+  </script>
 </Layout>

@@ -396,6 +396,13 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
       if (utmMedium) tags.push(`medium-${tagSlug(utmMedium)}`);
       if (utmCampaign) tags.push(`campaign-${tagSlug(utmCampaign)}`);
       if (!utmSource && !fbclid && !gclid) tags.push('source-organic-or-direct');
+      // Which funnel converted them — drives which automation they enter.
+      // lastUrl is the page they submitted from (middleware updates it on
+      // every HTML view); Referer is the no-cookie fallback.
+      try {
+        const funnelPath = new URL(lastUrl || request.headers.get('referer') || '').pathname;
+        tags.push(`funnel-${tagSlug(funnelPath.replace(/^\/+|\/+$/g, '')) || 'home'}`);
+      } catch { /* no page context — skip the funnel tag rather than guess */ }
 
       const ghlPayload: Dict = {
         firstName,

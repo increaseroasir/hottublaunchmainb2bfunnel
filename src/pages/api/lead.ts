@@ -535,7 +535,12 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   if (!ok) {
     await fireAlert({ alert: 'LEAD_STORED_NOWHERE', lead_uuid: leadUuid, d1: d1Status, ghl: ghlStatus, sheet: sheetStatus });
   }
-  const payload = { ok, leadUuid, eventId, duplicate, redirect: '/confirmed' };
+  // Qualified = owner AND 5-10 or 10+ units/month → route to the booking page.
+  const qualified =
+    (isOwner === 'yes' || isOwner === 'true') &&
+    (monthlyVolume === '5-10' || monthlyVolume === '10+');
+  const next = qualified ? '/thankyouq' : '/confirmed';
+  const payload = { ok, leadUuid, eventId, duplicate, redirect: next };
   if (isJson) return json(ok ? 200 : 500, payload);
-  return redirect('/confirmed', 303);
+  return redirect(next, 303);
 };

@@ -1,0 +1,272 @@
+---
+import Layout from '../layouts/Layout.astro';
+const title = 'Thank You — Hot Tub Launch';
+const calendarId = '2Cxr8gHsnc6xnMbeRPu9';
+---
+
+<Layout title={title} robots="noindex">
+  <style is:global>
+    :root {
+      --htl-white: #FFFFFF;
+      --htl-ink: #0E0C0B;
+      --htl-gray: #3A3532;
+      --htl-muted: #6E655F;
+      --htl-red: #CE1126;
+      --htl-red-dk: #A80E1F;
+      --htl-line: #E0DAD0;
+      --htl-cream: #FAF7F2;
+      --htl-wrap: 680px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--htl-white);
+      color: var(--htl-gray);
+      font-family: 'Manrope', system-ui, sans-serif;
+      font-size: 17px;
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+    }
+    .wrap { max-width: var(--htl-wrap); margin: 0 auto; padding: 0 1.2rem; }
+
+    /* ---------- LOGO ---------- */
+    .ty-logo {
+      text-align: center;
+      padding: clamp(2.4rem, 5vw, 3.2rem) 0 0;
+    }
+    .ty-logo-inner {
+      display: inline-flex;
+      align-items: center;
+      gap: .6rem;
+    }
+    .ty-logo .mk { width: 34px; height: 34px; }
+    .ty-logo .w1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: 1.05rem;
+      letter-spacing: .02em;
+      text-transform: uppercase;
+      color: var(--htl-ink);
+      line-height: .85;
+      display: block;
+      text-align: left;
+    }
+    .ty-logo .w2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 700;
+      font-size: .66rem;
+      letter-spacing: .42em;
+      color: var(--htl-red);
+      text-transform: uppercase;
+      display: block;
+      margin-top: 2px;
+      text-align: left;
+    }
+
+    /* ---------- HEADLINE ---------- */
+    .ty-headline {
+      text-align: center;
+      padding: 1.6rem 0 2rem;
+    }
+    .ty-headline h1 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.5rem, 3.5vw, 2.2rem);
+      color: var(--htl-ink);
+      line-height: 1.25;
+      letter-spacing: -.02em;
+    }
+    .ty-headline h1 .accent {
+      color: var(--htl-red);
+    }
+
+    /* ---------- CALENDAR ---------- */
+    .ty-calendar {
+      max-width: 500px;
+      margin: 0 auto;
+      padding: 0 1.2rem 2.4rem;
+    }
+    .ty-calendar .cal-shell {
+      background: #F8F6F2;
+      border: 1.5px solid var(--htl-line);
+      border-radius: 10px;
+      min-height: 420px;
+      overflow: hidden;
+    }
+    .ty-calendar .cal-shell iframe {
+      border: 0;
+      width: 100%;
+      height: 420px;
+    }
+
+    /* ---------- MIDDLE BAND ---------- */
+    .ty-band {
+      text-align: center;
+      padding: 2.4rem 0 2.8rem;
+      background: var(--htl-cream);
+    }
+    .ty-band h2 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 900;
+      font-size: clamp(1.2rem, 2.5vw, 1.6rem);
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      color: var(--htl-ink);
+      margin-bottom: 1.6rem;
+    }
+
+    /* ---------- FEATURE CARDS ---------- */
+    .ty-cards {
+      display: flex;
+      gap: 1.2rem;
+      max-width: 720px;
+      margin: 0 auto;
+      padding: 0 1.2rem 3rem;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .ty-card {
+      background: var(--htl-white);
+      border: 1.5px solid var(--htl-line);
+      border-radius: 10px;
+      padding: 1.6rem 1.4rem;
+      flex: 1 1 200px;
+      max-width: 220px;
+      text-align: center;
+    }
+    .ty-card .card-icon {
+      font-size: 1.8rem;
+      margin-bottom: .8rem;
+    }
+    .ty-card h3 {
+      font-family: 'Montserrat', sans-serif;
+      font-weight: 800;
+      font-size: .7rem;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--htl-ink);
+      margin-bottom: .6rem;
+    }
+    .ty-card p {
+      font-size: .8rem;
+      color: var(--htl-muted);
+      line-height: 1.55;
+    }
+
+    /* ---------- FOOTER ---------- */
+    .ty-footer {
+      background: var(--htl-ink);
+      padding: 2.4rem 0 2.6rem;
+      text-align: center;
+    }
+    .ty-footer .logo .w1 { color: var(--htl-cream); }
+    .ty-footer .foot-legal {
+      color: rgba(250, 247, 242, .42);
+      font-size: .74rem;
+      max-width: 64ch;
+      margin: 1.3rem auto 0;
+      line-height: 1.65;
+    }
+
+    :focus-visible { outline: 3px solid var(--htl-red); outline-offset: 3px; border-radius: 2px; }
+    @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  </style>
+
+  <!-- ============ LOGO ============ -->
+  <div class="ty-logo">
+    <div class="ty-logo-inner">
+      <svg class="mk" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+        <ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#0E0C0B" stroke-width="1.6"/>
+        <ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#0E0C0B" stroke-width="1.4" opacity=".5"/>
+        <circle cx="24" cy="21" r="13" stroke="#0E0C0B" stroke-width="1.8"/>
+        <path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/>
+      </svg>
+      <span>
+        <span class="w1">Hot Tub</span>
+        <span class="w2">Launch</span>
+      </span>
+    </div>
+  </div>
+
+  <!-- ============ HEADLINE ============ -->
+  <div class="ty-headline">
+    <h1>Thank You: <span class="accent">Choose a time below</span></h1>
+  </div>
+
+  <!-- ============ CALENDAR ============ -->
+  <div class="ty-calendar">
+    <div class="cal-shell">
+      <iframe
+        src={ `https://api.leadconnectorhq.com/widget/booking/${calendarId}` }
+        title="Schedule a call"
+        loading="lazy">
+      </iframe>
+    </div>
+  </div>
+
+  <script>
+    // Schedule — server-deduped, reload-safe. Fires once per lead, ever.
+    (async () => {
+      try {
+        const res = await fetch('/api/lead-stage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ event: 'Schedule' }),
+        });
+        const d = await res.json() as Record<string, unknown>;
+        if (d.ok && d.sent && d.duplicate === false && d.eventId && typeof fbq === 'function') {
+          fbq('track', 'Schedule', { value: d.value, currency: 'USD' }, { eventID: d.eventId });
+        }
+      } catch {}
+    })();
+  </script>
+
+  <!-- ============ MIDDLE BAND ============ -->
+  <div class="ty-band">
+    <h2>BOOK A MEETING INSTANTLY</h2>
+  </div>
+
+  <!-- ============ FEATURE CARDS ============ -->
+  <div class="ty-cards">
+    <div class="ty-card">
+      <div class="card-icon">📈</div>
+      <h3>Accelerated Growth</h3>
+      <p>Done-For-You Sales System That Turns Your Website Into a 24/7 Lead Machine</p>
+    </div>
+    <div class="ty-card">
+      <div class="card-icon">📞</div>
+      <h3>Professional Intake</h3>
+      <p>Every Call, Text, and Email Handled by Trained Sales Staff Who Book Showroom Appointments</p>
+    </div>
+    <div class="ty-card">
+      <div class="card-icon">🎯</div>
+      <h3>Exclusive Territory</h3>
+      <p>We Only Work With One Store Per Market — Your Leads Are Never Shared With Competitors</p>
+    </div>
+  </div>
+
+  <!-- ============ FOOTER ============ -->
+  <div class="ty-footer">
+    <div class="wrap">
+      <div class="ty-logo">
+        <div class="ty-logo-inner">
+          <svg class="mk" viewBox="0 0 48 48" fill="none" aria-hidden="true">
+            <ellipse cx="24" cy="37" rx="17" ry="3.4" stroke="#FAF7F2" stroke-width="1.6"/>
+            <ellipse cx="24" cy="37" rx="10.5" ry="2" stroke="#FAF7F2" stroke-width="1.4" opacity=".5"/>
+            <circle cx="24" cy="21" r="13" stroke="#FAF7F2" stroke-width="1.8"/>
+            <path d="M20 34 C18 24 22 15 31 8 C27 17 27 26 28 34 Z" fill="#CE1126"/>
+          </svg>
+          <span>
+            <span class="w1">Hot Tub</span>
+            <span class="w2">Launch</span>
+          </span>
+        </div>
+      </div>
+      <p class="foot-legal">
+        This website is not endorsed by or affiliated with Facebook, Google, or YouTube in any way.
+        Individual results presented here may not be typical. Your background, effort, and execution
+        affect outcomes, and nothing here is a guarantee of any specific result.
+        Copyright &copy; 2026 Hot Tub Launch &mdash; All Rights Reserved
+      </p>
+    </div>
+  </div>
+</Layout>

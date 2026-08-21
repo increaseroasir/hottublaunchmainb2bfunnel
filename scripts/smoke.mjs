@@ -133,7 +133,7 @@ async function main() {
 
   // ============ GATE 1 — every route returns 200, including /confirmed ============
   {
-    const routes = ['/', '/check-territory', '/apply', '/profit-playbook', '/case-study', '/webinar-registration', '/privacy', '/confirmed', '/thankyou'];
+    const routes = ['/', '/check-territory', '/apply', '/profit-playbook', '/case-study', '/webinar-registration', '/privacy', '/confirmed', '/thankyou', '/thankyouq'];
     if (BREAK === 'routes') routes.push('/this-route-does-not-exist');
     let bad = [];
     for (const r of routes) {

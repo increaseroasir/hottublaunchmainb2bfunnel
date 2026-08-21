@@ -12,6 +12,7 @@ Disallow: /webinar-registration
 Disallow: /confirmed
 Disallow: /thankyou
 Disallow: /thankyou-general
+Disallow: /thankyouq
 
 # Drafts / internal previews
 Disallow: /homepage-draft

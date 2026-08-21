@@ -383,6 +383,20 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
       if (cfConsent && consentGiven && consentText) {
         customFields.push({ id: cfConsent, value: `${consentText} | version=${consentVersion} | url=${consentUrl} | at=${consentAt}` });
       }
+      // Source/medium/campaign tags so the CRM is filterable by where the
+      // lead came from. GHL auto-creates unknown tags on upsert — no setup.
+      const tagSlug = (s: string) =>
+        s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+      const tags = [
+        'htl-b2b-website',
+        // C11: a lead with no consent record must never enter an automated sequence
+        contactable ? 'consent-captured' : 'no-consent-no-automation',
+      ];
+      if (utmSource) tags.push(`source-${tagSlug(utmSource)}`);
+      if (utmMedium) tags.push(`medium-${tagSlug(utmMedium)}`);
+      if (utmCampaign) tags.push(`campaign-${tagSlug(utmCampaign)}`);
+      if (!utmSource && !fbclid && !gclid) tags.push('source-organic-or-direct');
+
       const ghlPayload: Dict = {
         firstName,
         lastName: lastName || undefined,
@@ -390,8 +404,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         phone: phone || undefined,
         locationId: ghlLocationId,
         source: 'Hot Tub Launch B2B Website',
-        // C11: a lead with no consent record must never enter an automated sequence
-        tags: ['htl-b2b-website', contactable ? 'consent-captured' : 'no-consent-no-automation'],
+        tags,
       };
       if (customFields.length) ghlPayload.customFields = customFields;
 

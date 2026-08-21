@@ -12,8 +12,6 @@ import {
   capiSend,
   getBinding,
   getEnv,
-  normEmail,
-  phone10,
   ghlBase,
   type Dict,
 } from '../../lib/server';

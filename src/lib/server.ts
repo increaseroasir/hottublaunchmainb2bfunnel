@@ -114,18 +114,25 @@ export type CapiResult = { ok: boolean; status: number; body: string };
  */
 export async function capiSend(pixelId: string, token: string, events: Dict[]): Promise<CapiResult> {
   try {
+    // test_event_code goes at the top level of the CAPI payload, alongside
+    // data. Driven by META_TEST_EVENT_CODE so it can be flipped on/off via a
+    // secret without a redeploy. Remove/blank it before real traffic.
+    const testEventCode = getEnv('META_TEST_EVENT_CODE')?.trim();
+    const body: Dict = { data: events };
+    if (testEventCode) body.test_event_code = testEventCode;
+
     const res = await fetch(`${capiBase()}/${pixelId}/events`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        Authorization: `Bearer ${token}`,
+        Authorization: 'Bearer ' + token,
       },
-      body: JSON.stringify({ data: events }),
+      body: JSON.stringify(body),
       signal: AbortSignal.timeout(10000),
     });
-    const body = await res.text();
-    console.error('CAPI:', res.status, body.slice(0, 500));
-    return { ok: res.ok, status: res.status, body };
+    const respText = await res.text();
+    console.error('CAPI:', res.status, respText.slice(0, 500));
+    return { ok: res.ok, status: res.status, body: respText };
   } catch (e) {
     const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 300) || ''}`;
     console.error('CAPI network error:', msg);

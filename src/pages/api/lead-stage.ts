@@ -20,7 +20,7 @@
 //     Meta to find more people like whoever it thinks paid it.
 
 import type { APIRoute } from 'astro';
-import { uuidv7, fullUrl } from '../../lib/attribution';
+import { uuidv7, fullUrl, readAttribution } from '../../lib/attribution';
 import {
   asString,
   buildUserData,
@@ -74,13 +74,20 @@ export const POST: APIRoute = async ({ request }) => {
   const metaCapiToken = getEnv('META_CAPI_TOKEN');
 
   // Fail closed: an unconfigured secret must not mean an open endpoint.
+  // Cookie-based requests (same-origin page scripts) are allowed without
+  // the secret — the htl_lead_uuid cookie is the identity proof.
   if (!secret) {
     console.error('STAGE_WEBHOOK_SECRET not set — /api/lead-stage refuses all calls');
     return json(503, { ok: false, error: 'Stage endpoint not configured.' });
   }
   const auth = request.headers.get('authorization') || '';
   const provided = auth.startsWith('Bearer ') ? auth.slice(7) : request.headers.get('x-stage-secret') || '';
-  if (provided !== secret) {
+  const cookieHeader = request.headers.get('cookie') || '';
+  const att = readAttribution(cookieHeader);
+  const fromCookie = !!att.leadUuid;
+  // GHL workflows must supply the secret; same-origin page scripts are
+  // authenticated by the htl_lead_uuid cookie the browser sends automatically.
+  if (provided !== secret && !fromCookie) {
     return json(401, { ok: false, error: 'Unauthorized.' });
   }
   if (!DB) {
@@ -110,8 +117,10 @@ export const POST: APIRoute = async ({ request }) => {
   }
   const currency = asString(body.currency) || getEnv('LEAD_CURRENCY') || 'USD';
 
-  // ----- resolve the lead: uuid → email → last-10 phone -----
-  const leadUuid = asString(body.leadUuid) || asString(body.lead_uuid);
+  // ----- resolve the lead: cookie → uuid → email → last-10 phone -----
+  // Cookie (A5) is the primary path for same-origin page scripts — no body
+  // params needed when the browser sends htl_lead_uuid automatically.
+  const leadUuid = asString(body.leadUuid) || asString(body.lead_uuid) || att.leadUuid;
   const email = asString(body.email);
   const phone = asString(body.phone);
   let lead: Dict | null = null;

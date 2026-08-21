@@ -20,6 +20,9 @@ declare global {
   // Meta pixel
   // eslint-disable-next-line no-var
   var fbq: ((...args: unknown[]) => void) | undefined;
+  // GA4 gtag (defined inline in Layout.astro; queues to dataLayer before GA loads)
+  // eslint-disable-next-line no-var
+  var gtag: ((...args: unknown[]) => void) | undefined;
 }
 
 type WireOptions = {
@@ -177,6 +180,14 @@ export function wireLeadForm(opts: WireOptions): void {
 
       // B5 + B6: server's event id, browser half gated on duplicate === false
       if (data.duplicate === false && data.eventId) {
+        // GA4 recommended event — same gate as the pixel, so a refresh or
+        // duplicate submit never double-counts in Analytics either.
+        if (typeof gtag === 'function') {
+          gtag('event', 'generate_lead', {
+            currency: 'USD',
+            transaction_id: data.eventId, // ties GA4 lead to the Meta event pair
+          });
+        }
         await fireBrowserLead(form, data.eventId);
       }
       window.location.assign(data.redirect || '/confirmed');

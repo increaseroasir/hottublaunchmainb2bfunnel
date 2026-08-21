@@ -183,6 +183,15 @@ export function wireLeadForm(opts: WireOptions): void {
         // GA4 recommended event — same gate as the pixel, so a refresh or
         // duplicate submit never double-counts in Analytics either.
         if (typeof gtag === 'function') {
+          // Google enhanced conversions / GA4 user-provided data: raw values,
+          // Google normalizes + hashes client-side before anything leaves.
+          // Requires "User-provided data collection" ON in GA4 admin.
+          const ecEmail = fieldValue(form, 'email').toLowerCase();
+          const ecPhoneDigits = normPhone(fieldValue(form, 'phone'));
+          const userData: Record<string, string> = {};
+          if (ecEmail) userData.email = ecEmail;
+          if (ecPhoneDigits) userData.phone_number = '+' + ecPhoneDigits; // E.164
+          if (Object.keys(userData).length) gtag('set', 'user_data', userData);
           gtag('event', 'generate_lead', {
             currency: 'USD',
             transaction_id: data.eventId, // ties GA4 lead to the Meta event pair

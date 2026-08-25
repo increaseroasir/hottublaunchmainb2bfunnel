@@ -3,6 +3,7 @@ Allow: /
 
 # Funnel mid/end pages — keep out of organic crawl
 Disallow: /thankyou-general
+Disallow: /pre-call
 Disallow: /case-study/booking
 Disallow: /case-study/thank-you/
 Disallow: /profit-playbook/booking-calendar

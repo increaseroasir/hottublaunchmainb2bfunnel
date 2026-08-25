@@ -1,0 +1,568 @@
+---
+// Page 01 — Pre-Call Proof.
+// For prospects who already booked a call. No lead form on this page (the one
+// action is: show up prepared) — so no AttributionFields / wireLeadForm here.
+// Layout still fires the pixel + GA4 and the middleware still sets cookies.
+// Asset paths + export specs: public/images/pre-call/ASSETS.md
+import Layout from '../layouts/Layout.astro';
+
+const IMG = '/images/pre-call';
+
+const STAGES = [
+  'Traffic', 'Lead / Pricing Request', 'Contacted', 'Qualified',
+  'Appointment', 'Show', 'Quote', 'Sold',
+];
+
+const CAMPAIGN_STATS = [
+  { n: '1M+', l: 'Impressions' },
+  { n: '338', l: 'Website leads' },
+  { n: '268', l: 'Meta-attributed leads' },
+  { n: '7,000', l: 'Website clicks' },
+  { n: '6,800', l: 'Landing-page views' },
+];
+---
+
+<Layout
+  title="Before Your Call — Hot Tub Launch"
+  description="A five-minute briefing before your scheduled call: the online showroom, the buyer path, and the numbers behind Hot Tub Launch."
+  pageClass="pre-call"
+  robots="noindex"
+>
+  <style is:global>
+    body.pre-call{margin:0}
+    .pre-call section{padding-block:var(--s-4)}
+    .pre-call .sec-head{max-width:640px;margin-bottom:var(--s-3)}
+    .pre-call .sec-head p{margin-top:.8rem}
+
+    /* framed screenshot treatment (shared) */
+    .pre-call .shot{
+      display:block;max-width:100%;height:auto;background:var(--paper);
+      border:1px solid var(--line);border-radius:var(--r-md);box-shadow:var(--el-2);
+    }
+
+    /* ---------- 01 HERO ---------- */
+    .pc-hero{background:var(--paper);border-bottom:1px solid var(--line)}
+    .pc-hero .wrap{
+      display:grid;grid-template-columns:47% 1fr;gap:var(--s-3);align-items:center;
+    }
+    .pc-hero h1{
+      font-size:clamp(1.9rem,4vw,2.9rem);letter-spacing:-.02em;margin-bottom:1rem;
+    }
+    .pc-hero .booked{
+      display:inline-flex;align-items:center;gap:.5rem;font-family:'Montserrat';
+      font-weight:800;font-size:.72rem;letter-spacing:.14em;text-transform:uppercase;
+      color:var(--red);margin-bottom:1.1rem;
+    }
+    .pc-hero .booked::before{content:"●";font-size:.6em}
+    .pc-hero .lede{font-size:1.08rem;max-width:46ch}
+    .pc-hero .hero-actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:var(--s-2)}
+    .pc-hero .hero-visual{position:relative;min-height:500px}
+    .pc-hero .hero-main{width:100%;max-width:580px}
+    .pc-hero .hero-float{
+      position:absolute;width:38%;max-width:230px;border-radius:var(--r-sm);
+      border:1px solid var(--line);box-shadow:var(--el-3);background:var(--paper);
+    }
+    .pc-hero .hero-float.product{right:-2%;bottom:8%}
+    .pc-hero .hero-float.price{left:-2%;bottom:-4%}
+
+    /* ---------- 02 WELCOME VIDEO ---------- */
+    .pc-video .player{
+      max-width:940px;margin-inline:auto;aspect-ratio:16/9;width:100%;
+      border-radius:var(--r-lg);overflow:hidden;background:var(--ink);box-shadow:var(--el-ink);
+    }
+    .pc-video video{width:100%;height:100%;display:block;object-fit:cover}
+    .pc-video .sec-head{margin-inline:auto;text-align:center}
+
+    /* ---------- 03 BUYER PATH ---------- */
+    .pc-path{background:var(--ink);color:var(--cream)}
+    .pc-path h2{color:var(--cream)}
+    .pc-path .sec-head p{color:rgba(250,247,242,.75)}
+    .pc-path ol{
+      list-style:none;display:flex;align-items:stretch;gap:0;max-width:1080px;
+      margin-inline:auto;counter-reset:stage;
+    }
+    .pc-path li{
+      counter-increment:stage;flex:1;min-width:0;position:relative;
+      padding:1.1rem .6rem;text-align:center;
+      border:1px solid var(--line-dark);border-left:0;background:rgba(250,247,242,.04);
+    }
+    .pc-path li:first-child{border-left:1px solid var(--line-dark);border-radius:var(--r-sm) 0 0 var(--r-sm)}
+    .pc-path li:last-child{border-radius:0 var(--r-sm) var(--r-sm) 0;background:rgba(206,17,38,.18)}
+    .pc-path li::before{
+      content:counter(stage,decimal-leading-zero);display:block;font-family:'Montserrat';
+      font-weight:700;font-size:.62rem;letter-spacing:.12em;color:var(--muted-dark);margin-bottom:.4rem;
+    }
+    .pc-path li span{
+      font-family:'Montserrat';font-weight:800;font-size:.72rem;letter-spacing:.05em;
+      text-transform:uppercase;line-height:1.25;display:block;
+    }
+    .pc-path .stop{
+      text-align:center;margin-top:var(--s-2);font-family:'Montserrat';font-weight:700;
+      font-size:.8rem;letter-spacing:.08em;text-transform:uppercase;color:rgba(250,247,242,.6);
+    }
+    .pc-path .stop b{color:var(--red)}
+
+    /* ---------- 04 SHOWROOM ---------- */
+    .pc-showroom .grid{
+      display:grid;grid-template-columns:35% 1fr;gap:var(--s-3);align-items:start;
+    }
+    .pc-showroom .comp{display:grid;gap:var(--s-2)}
+    .pc-showroom .comp .mobiles{display:flex;gap:var(--s-2);justify-content:center}
+    .pc-showroom .comp .mobiles .shot{width:min(240px,44%)}
+
+    /* ---------- 05 HANDOFF ---------- */
+    .pc-handoff{background:var(--paper);border-block:1px solid var(--line)}
+    .pc-handoff .steps{
+      display:grid;grid-template-columns:repeat(4,1fr);gap:var(--s-2);max-width:1000px;
+    }
+    .pc-handoff figure{margin:0;text-align:center}
+    .pc-handoff .shot{max-width:270px;margin-inline:auto}
+    .pc-handoff figcaption{
+      margin-top:.7rem;font-family:'Montserrat';font-weight:800;font-size:.7rem;
+      letter-spacing:.1em;text-transform:uppercase;color:var(--ink);
+    }
+    .pc-handoff figcaption small{
+      display:block;font-family:'Manrope';font-weight:500;font-size:.78rem;
+      letter-spacing:0;text-transform:none;color:var(--muted);margin-top:.25rem;
+    }
+
+    /* ---------- 06 SCOREBOARD ---------- */
+    .pc-scoreboard .shot{max-width:980px;margin-inline:auto;max-height:600px;object-fit:cover;object-position:top}
+
+    /* ---------- PROOF (07–12 shared) ---------- */
+    .pc-proof-intro{padding-bottom:0}
+    .pc-proof-intro .sec-head{max-width:680px}
+    .proof-block{padding-block:var(--s-3)}
+    .proof-block + .proof-block{border-top:1px solid var(--line)}
+    .proof-split{display:grid;grid-template-columns:340px 1fr;gap:var(--s-3);align-items:center}
+    .big-stat{
+      font-family:'Montserrat';font-weight:900;text-transform:uppercase;line-height:.95;
+      font-size:clamp(2.6rem,6vw,4rem);color:var(--ink);letter-spacing:-.02em;
+    }
+    .big-stat .red{display:block}
+    .big-stat-sub{margin-top:.9rem;color:var(--muted);font-size:.95rem;max-width:34ch}
+    .fine{font-size:.78rem;color:var(--muted-dark);margin-top:.7rem;max-width:44ch}
+    .stat-strip{
+      display:flex;flex-wrap:wrap;gap:1.6rem 2.4rem;margin-bottom:var(--s-2);
+    }
+    .stat-strip div{min-width:0}
+    .stat-strip b{
+      display:block;font-family:'Montserrat';font-weight:900;font-size:1.6rem;color:var(--ink);
+    }
+    .stat-strip span{font-size:.78rem;color:var(--muted);letter-spacing:.02em}
+    .proof-pair{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-2);max-width:980px}
+
+    /* 09 creatives */
+    .pc-creative .board{
+      display:grid;grid-template-columns:minmax(0,420px) 1fr;gap:var(--s-2);align-items:start;max-width:900px;
+    }
+    .pc-creative .runners{display:grid;grid-template-columns:1fr 1fr;gap:var(--s-1)}
+    .pc-creative .tag{
+      display:inline-block;margin-top:.6rem;font-family:'Montserrat';font-weight:800;
+      font-size:.68rem;letter-spacing:.1em;text-transform:uppercase;color:var(--red);
+    }
+
+    /* 11 engagement */
+    .pc-engage .shot{max-width:620px}
+
+    /* 12 CRM boundary note */
+    .boundary{
+      margin-top:var(--s-2);max-width:640px;padding:1rem 1.2rem;background:var(--paper);
+      border:1px solid var(--line);border-left:3px solid var(--red);border-radius:var(--r-sm);
+      font-size:.85rem;color:var(--ink-soft);
+    }
+
+    /* ---------- 13 FOUNDERS ---------- */
+    .pc-founders{background:var(--paper);border-block:1px solid var(--line)}
+    .pc-founders .grid{display:grid;grid-template-columns:45% 1fr;gap:var(--s-3);align-items:center}
+    .pc-founders .collage{display:grid;grid-template-columns:1.6fr 1fr 1fr;grid-auto-rows:auto;gap:var(--s-1)}
+    .pc-founders .collage .main{grid-row:span 2}
+    .pc-founders .collage .shot{width:100%;height:100%;object-fit:cover}
+
+    /* ---------- 14 APPOINTMENT ---------- */
+    .pc-final .card{
+      max-width:800px;margin-inline:auto;text-align:center;background:var(--paper);
+      border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--el-3);
+      padding:var(--s-3) var(--s-2);
+    }
+    .pc-final img.logo{height:36px;width:auto;margin:0 auto var(--s-2)}
+    .pc-final h2{font-size:clamp(1.5rem,3vw,2.1rem)}
+    .pc-final ul{
+      list-style:none;max-width:440px;margin:var(--s-2) auto 0;text-align:left;
+      display:grid;gap:.7rem;
+    }
+    .pc-final li{
+      display:flex;gap:.7rem;align-items:flex-start;font-size:.95rem;color:var(--ink-soft);
+    }
+    .pc-final li::before{content:"→";color:var(--red);font-weight:700;flex:none}
+    .pc-final .note{margin:var(--s-2) auto 0;color:var(--muted);font-size:.85rem;max-width:46ch}
+
+    /* ---------- MOBILE ---------- */
+    @media (max-width:880px){
+      .pc-hero .wrap,.pc-showroom .grid,.pc-founders .grid{grid-template-columns:1fr}
+      .pc-hero .hero-visual{min-height:0;margin-top:var(--s-2)}
+      .pc-hero .hero-float{display:none}
+      .pc-hero .hero-main{max-width:100%}
+
+      .pc-path ol{flex-direction:column;max-width:420px;gap:0}
+      .pc-path li{
+        display:flex;align-items:center;gap:.9rem;text-align:left;min-height:58px;
+        padding:.9rem 1.1rem;border:1px solid var(--line-dark);border-top:0;
+      }
+      .pc-path li:first-child{border-top:1px solid var(--line-dark);border-radius:var(--r-sm) var(--r-sm) 0 0}
+      .pc-path li:last-child{border-radius:0 0 var(--r-sm) var(--r-sm)}
+      .pc-path li::before{margin-bottom:0}
+
+      .pc-showroom .comp .mobiles .shot{width:min(240px,60%)}
+      .pc-showroom .comp .mobiles{flex-direction:column;align-items:center}
+
+      .pc-handoff .steps{grid-template-columns:1fr;max-width:340px;margin-inline:auto}
+      .pc-handoff .shot{max-width:260px}
+
+      .proof-split{grid-template-columns:1fr}
+      .proof-pair{grid-template-columns:1fr}
+      .pc-creative .board{grid-template-columns:1fr}
+      .pc-creative .board > .lead-winner .shot{max-width:330px;margin-inline:auto}
+      .pc-engage .shot{max-width:340px}
+
+      .pc-founders .collage{grid-template-columns:1fr 1fr}
+      .pc-founders .collage .main{grid-column:span 2;grid-row:auto}
+    }
+  </style>
+
+  <main>
+
+    <!-- ============ 01 · HERO ============ -->
+    <section class="pc-hero">
+      <div class="wrap">
+        <div>
+          <span class="booked">Your call is booked</span>
+          <h1>This is the <span class="red">buying system</span> your call is about</h1>
+          <p class="lede">
+            Take five minutes before we talk. What you're looking at below is a real,
+            working hot-tub buying system — an online showroom, a tracked buyer path,
+            and the numbers behind it. Not a Facebook-ads pitch.
+          </p>
+          <div class="hero-actions">
+            <a class="btn btn--primary" href="#welcome">Watch the 90-second welcome <span class="arrow">→</span></a>
+            <a class="btn btn--outline" href="#proof">Skip to the numbers</a>
+          </div>
+        </div>
+        <div class="hero-visual">
+          <picture>
+            <source media="(max-width:880px)" srcset={`${IMG}/01-hero/hero-online-showroom-mobile.webp`} />
+            <img class="shot hero-main" src={`${IMG}/01-hero/hero-online-showroom-desktop.webp`}
+              alt="The Hot Tub Launch online showroom — live homepage" loading="eager" />
+          </picture>
+          <img class="hero-float product" src={`${IMG}/01-hero/hero-aquatrainer-product.webp`}
+            alt="AquaTrainer product page in the online showroom" loading="lazy" />
+          <img class="hero-float price" src={`${IMG}/01-hero/hero-price-request.webp`}
+            alt="Live pricing and availability request" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 02 · WELCOME VIDEO ============ -->
+    <section class="pc-video" id="welcome">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="eyebrow">From Alex &amp; Manny</span>
+          <h2>Ninety seconds on what this call is for</h2>
+          <p>
+            No canned agency pitch. We're going to diagnose your store — where buyers
+            enter, where they stall, and what that's costing you. This is who you'll
+            be talking to.
+          </p>
+        </div>
+        <div class="player">
+          <video controls preload="none" playsinline
+            poster={`${IMG}/02-welcome-video/precall-welcome-poster-desktop.webp`}>
+            <source src={`${IMG}/02-welcome-video/precall-welcome.mp4`} type="video/mp4" />
+          </video>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 03 · BUYER PATH ============ -->
+    <section class="pc-path">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="eyebrow on-ink">The diagnostic</span>
+          <h2>Where does the buyer stop?</h2>
+          <p>
+            Most stores don't have a lead problem — they have a leak somewhere on this
+            path. Every buyer in your market walks these eight stages. The call is
+            about finding the stage where yours disappear.
+          </p>
+        </div>
+        <ol>
+          {STAGES.map((s) => <li><span>{s}</span></li>)}
+        </ol>
+        <p class="stop">The question isn't "how do I get more leads." It's <b>"where do they stop?"</b></p>
+      </div>
+    </section>
+
+    <!-- ============ 04 · ONLINE SHOWROOM ============ -->
+    <section class="pc-showroom">
+      <div class="wrap">
+        <div class="grid">
+          <div class="sec-head">
+            <span class="eyebrow">The online showroom</span>
+            <h2>Buyers can actually shop</h2>
+            <p>
+              This isn't paid traffic dumped on a generic dealer homepage. In the
+              showroom, a buyer can browse real inventory, inspect a specific tub,
+              ask for an out-the-door price, and see financing — every screen below
+              is live today.
+            </p>
+          </div>
+          <div class="comp">
+            <img class="shot" src={`${IMG}/04-online-showroom/01-homepage-desktop.webp`}
+              alt="Showroom homepage — San Diego hot tub store hero with local price form" loading="lazy" />
+            <div class="mobiles">
+              <img class="shot" src={`${IMG}/04-online-showroom/02-product-card-mobile.webp`}
+                alt="Mobile product card — Hydropool AquaTrainer inventory and availability" loading="lazy" />
+              <img class="shot" src={`${IMG}/04-online-showroom/04-price-financing-mobile.webp`}
+                alt="Mobile product detail — written out-the-door price form and financing CTA" loading="lazy" />
+            </div>
+            <img class="shot" src={`${IMG}/04-online-showroom/03-aquatrainer-detail-desktop.webp`}
+              alt="AquaTrainer 14AX product detail with out-the-door price CTA" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 05 · BUYER HANDOFF ============ -->
+    <section class="pc-handoff">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="eyebrow">After the click</span>
+          <h2>The lead isn't the end product</h2>
+          <p>
+            When a buyer raises their hand, their context comes with them — the tub
+            they looked at, the price they asked about, the time they picked. Your
+            salesperson gets a buyer, not a phone number.
+          </p>
+        </div>
+        <div class="steps">
+          <figure>
+            <img class="shot" src={`${IMG}/05-buyer-handoff/01-inventory-inquiry.webp`}
+              alt="Inventory inquiry with ZIP and contact information" loading="lazy" />
+            <figcaption>Interest<small>Inventory inquiry</small></figcaption>
+          </figure>
+          <figure>
+            <img class="shot" src={`${IMG}/05-buyer-handoff/02-price-request.webp`}
+              alt="Product-specific pricing request" loading="lazy" />
+            <figcaption>Context<small>Price request on a specific tub</small></figcaption>
+          </figure>
+          <figure>
+            <img class="shot" src={`${IMG}/05-buyer-handoff/03-showroom-booking.webp`}
+              alt="Showroom day and time booking" loading="lazy" />
+            <figcaption>Contact<small>Showroom booking</small></figcaption>
+          </figure>
+          <figure>
+            <img class="shot" src={`${IMG}/05-buyer-handoff/04-buyer-match.webp`}
+              alt="Buyer-match quiz" loading="lazy" />
+            <figcaption>Appointment<small>Matched and scheduled</small></figcaption>
+          </figure>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 06 · SCOREBOARD ============ -->
+    <section class="pc-scoreboard">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="eyebrow">The scoreboard</span>
+          <h2>We look past the lead</h2>
+          <p>
+            Every buyer lands on a pipeline: contacted, qualified, appointment, show,
+            quote, sold. This is the same view we'll use on your call — it answers
+            "what happened after the lead arrived?"
+          </p>
+        </div>
+        <picture>
+          <source media="(max-width:880px)" srcset={`${IMG}/06-scoreboard/scoreboard-opportunities.webp`} />
+          <img class="shot" src={`${IMG}/06-scoreboard/scoreboard-pipeline.webp`}
+            alt="CRM pipeline scoreboard showing buyer stages" loading="lazy" />
+        </picture>
+      </div>
+    </section>
+
+    <!-- ============ PROOF INTRO ============ -->
+    <section class="pc-proof-intro" id="proof">
+      <div class="wrap">
+        <div class="sec-head">
+          <span class="eyebrow">The numbers</span>
+          <h2>Proof, with receipts</h2>
+          <p>
+            Everything below is a real screenshot from a real campaign — revenue
+            first, then demand, creative, efficiency, attention, and the CRM
+            cross-check.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 07 · $150K+ SALES ============ -->
+    <section class="proof-block">
+      <div class="wrap">
+        <div class="proof-split">
+          <div>
+            <p class="big-stat">$150K+<span class="red">in sales</span></p>
+            <p class="big-stat-sub">From roughly $10K in ad spend, in about a week.</p>
+            <p class="fine">Rounded, owner-verified result.</p>
+          </div>
+          <div class="proof-pair">
+            <img class="shot" src={`${IMG}/07-proof-sales/150k-owner-proof.webp`}
+              alt="Owner-verified sales proof" loading="lazy" />
+            <img class="shot" src={`${IMG}/07-proof-sales/150k-supporting-campaign.webp`}
+              alt="Supporting campaign data for the sales result" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 08 · CAMPAIGN VOLUME ============ -->
+    <section class="proof-block">
+      <div class="wrap">
+        <div class="sec-head">
+          <h3>The demand behind it</h3>
+        </div>
+        <div class="stat-strip">
+          {CAMPAIGN_STATS.map((s) => <div><b>{s.n}</b><span>{s.l}</span></div>)}
+        </div>
+        <div class="proof-pair">
+          <img class="shot" src={`${IMG}/08-proof-campaign/1m-impressions-338-leads.webp`}
+            alt="Campaign dashboard — 1M+ impressions, 338 website leads" loading="lazy" />
+          <img class="shot" src={`${IMG}/08-proof-campaign/meta-268-attributed-leads.webp`}
+            alt="Meta ads manager — 268 attributed website leads" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 09 · CREATIVE WINNERS ============ -->
+    <section class="proof-block pc-creative">
+      <div class="wrap">
+        <div class="sec-head">
+          <h3>The ads that did the work</h3>
+          <p>Five documented winners, 76 leads between them. These are the actual ads.</p>
+        </div>
+        <div class="board">
+          <div class="lead-winner">
+            <img class="shot" src={`${IMG}/09-proof-creative/01-winner-23-leads-6-cpl.webp`}
+              alt="Top winning ad creative — 23 leads at $6 cost per lead" loading="lazy" />
+            <span class="tag">23 leads · $6 CPL</span>
+          </div>
+          <div class="runners">
+            <img class="shot" src={`${IMG}/09-proof-creative/02-winner.webp`} alt="Winning ad creative 2" loading="lazy" />
+            <img class="shot" src={`${IMG}/09-proof-creative/03-winner.webp`} alt="Winning ad creative 3" loading="lazy" />
+            <img class="shot" src={`${IMG}/09-proof-creative/04-winner.webp`} alt="Winning ad creative 4" loading="lazy" />
+            <img class="shot" src={`${IMG}/09-proof-creative/05-winner.webp`} alt="Winning ad creative 5" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 10 · EARLY EFFICIENCY ============ -->
+    <section class="proof-block">
+      <div class="wrap">
+        <div class="sec-head">
+          <h3>Fast out of the gate</h3>
+          <p>
+            49 leads in the first 11 days at $4.32 per lead — while the landing page
+            converted 31.88% of the people who reached it. Traffic and the page,
+            working as one path.
+          </p>
+        </div>
+        <div class="proof-pair">
+          <img class="shot" src={`${IMG}/10-proof-early-efficiency/49-leads-11-days.webp`}
+            alt="49 leads in 11 days at $4.32 cost per lead" loading="lazy" />
+          <img class="shot" src={`${IMG}/10-proof-early-efficiency/landing-page-31-88-conversion.webp`}
+            alt="Landing page converting at 31.88%" loading="lazy" />
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 11 · 109K ENGAGEMENT ============ -->
+    <section class="proof-block pc-engage">
+      <div class="wrap">
+        <div class="sec-head">
+          <h3>Attention, earned</h3>
+          <p>One ad, 109,000 views. Attention isn't the outcome — but it's where the outcome starts.</p>
+        </div>
+        <img class="shot" src={`${IMG}/11-proof-engagement/109k-view-ad.webp`}
+          alt="The ad with 109,000 views" loading="lazy" />
+      </div>
+    </section>
+
+    <!-- ============ 12 · CRM SOLD CROSS-CHECK ============ -->
+    <section class="proof-block">
+      <div class="wrap">
+        <div class="sec-head">
+          <h3>Cross-checked in the CRM</h3>
+          <p>
+            11 records sitting in the SOLD stage, and $141,909 in recorded opportunity
+            value across 13 nonzero records. This is what "looking past the lead"
+            produces: a paper trail from ad to sold.
+          </p>
+        </div>
+        <picture>
+          <source media="(max-width:880px)" srcset={`${IMG}/12-proof-crm/crm-141909-opportunity-value.webp`} />
+          <img class="shot" src={`${IMG}/12-proof-crm/crm-11-sold-records.webp`}
+            alt="CRM records in the SOLD stage with recorded opportunity value" loading="lazy" />
+        </picture>
+        <p class="boundary">
+          <strong>What this is:</strong> CRM stage and opportunity-value records.
+          <strong>What it is not:</strong> automatically collected cash, or
+          Meta-attributed revenue. We keep that line clear on purpose.
+        </p>
+      </div>
+    </section>
+
+    <!-- ============ 13 · FOUNDERS ============ -->
+    <section class="pc-founders">
+      <div class="wrap">
+        <div class="grid">
+          <div class="sec-head">
+            <span class="eyebrow">Your call</span>
+            <h2>The operators you'll be talking to</h2>
+            <p>
+              You've now seen the system, the buyer path, and the evidence. Alex and
+              Manny built and run all of it — and they're the ones on your call. No
+              account managers, no handoffs.
+            </p>
+          </div>
+          <div class="collage">
+            <img class="shot main" src={`${IMG}/13-founders/01-alex-manny-together.webp`}
+              alt="Alex and Manny, founders of Hot Tub Launch" loading="lazy" />
+            <img class="shot" src={`${IMG}/13-founders/02-manny-news.webp`} alt="Manny featured on the news" loading="lazy" />
+            <img class="shot" src={`${IMG}/13-founders/03-manny-trailer.webp`} alt="Manny with the delivery trailer" loading="lazy" />
+            <img class="shot" src={`${IMG}/13-founders/04-alex-studio.webp`} alt="Alex in the studio" loading="lazy" />
+            <img class="shot" src={`${IMG}/13-founders/05-alex-tradeshow.webp`} alt="Alex at a trade show" loading="lazy" />
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ 14 · FINAL APPOINTMENT ============ -->
+    <section class="pc-final">
+      <div class="wrap">
+        <div class="card">
+          <img class="logo" src="/logo.png" alt="Hot Tub Launch" />
+          <h2>One thing left to do: <span class="red">show up prepared</span></h2>
+          <ul>
+            <li>Know your rough monthly tub volume and average ticket.</li>
+            <li>Have your current lead flow handy — where leads come from, who follows up.</li>
+            <li>Think about the path above: where do <em>your</em> buyers stop?</li>
+          </ul>
+          <p class="note">
+            Your call is already scheduled — there's nothing to book here. Bring the
+            numbers, and we'll spend the whole call on your store.
+          </p>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</Layout>

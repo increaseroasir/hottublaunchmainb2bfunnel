@@ -1,5 +1,26 @@
 # Production source baseline
 
+## Current release — September 29, 2026
+
+The live website now runs the phone/backend repair from source `7db66ae7e888593ceece9b8fdbce81e72c6fe257`, merged into main through [PR #1](https://github.com/increaseroasir/hottublaunchmainb2bfunnel/pull/1) at `272365985d0ba63e1e8bae66c17a1634821d7070`. The merge tree exactly matches the deployed source. Later documentation-only commits do not require rebuilding the application.
+
+- Worker: `hottublaunch-main`, both public hostnames.
+- Version: `89485b18-07c3-46c8-b842-6f78b0f567d4`, 100% traffic.
+- Deployment: `2ef7a1ae-c8f0-47b0-a3cd-9a9701fb4445`, September 29 at 06:43:39 UTC / 02:43:39 Detroit.
+- Deployment annotation names the exact source commit above.
+- Artifact manifest SHA-256: `58e0160b3e80c194e50a73a54f9e3d0b125d289ed404da995719fcd957607395`; all 113 build files verified before upload, excluding local test `.dev.vars`.
+- D1 migration `0003_sheet_row_reservations.sql` applied and schema read back. Existing integration secrets retained; four verified non-secret CRM custom-field bindings added.
+
+All five capture forms and the API now require a valid phone and normalize it to E.164. This verifies number format, not ownership or reachability. The release also adds independent Google lead events, additive CRM tags and qualification mapping, CRM phone-conflict detection before intake tags, explicit RAW Sheet rows reserved through D1, stable retry event IDs with 24-hour rollover, and missing alert paths. No historical missing numbers were invented or backfilled. GHL-hosted funnels and workflows are separate from this release.
+
+Acceptance: source check passed with zero errors/warnings and three existing hints; build passed; 24 local smoke gates passed, including concurrency and injected outages. Client tests cover absent/throwing Meta, duplicates and failures. All five changed forms were checked on desktop/mobile locally. Public checks after release: 13 pages HTTP 200, all five required-phone inputs, six changed public scripts matching the reviewed artifact, and three invalid-phone API requests rejected with HTTP 400. The live playbook showed the phone error and retained values. D1 remained at 57 leads with the same latest-update timestamp and zero reservations before/after these invalid tests.
+
+Full valid website-to-CRM/Sheet delivery, platform receipt/admin settings, real alert delivery and CRM replacement cutover remain unverified. Approved test destinations resolve to different existing CRM contacts; no mixed-identity valid submission was made. Detailed private evidence is in canonical company `records/phone-capture-2026-09-29/`; do not copy customer records into this repository.
+
+Rollback: restore Worker `05019c5a-0f17-4f2f-8d09-97e2ac545ed5`, preserve accepted leads and leave the additive reservation table in place. That temporarily restores the former phone/append defects. Do not sort/delete physical projection rows while the reservation writer is active; coordinate a projection rebuild from D1 if rearrangement is necessary. No recurring repair job or new spending was added.
+
+## Historical recovered baseline — September 28
+
 Recovered September 28, 2026 from the existing live Hot Tub Launch B2B website. This reconciliation brings GitHub up to the deployed site; it does not deploy a different website.
 
 ## Release identity

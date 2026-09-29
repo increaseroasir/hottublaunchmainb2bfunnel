@@ -10,6 +10,8 @@ The live site is `hottublaunch.com`, Worker `hottublaunch-main`, D1 `hottublaunc
 
 Use one shared lead-submit path. Preserve D1-first capture, first/last attribution and identity, server event IDs, deduplication, consent version/text, and downstream status and alert handling. Secret values must stay out of source, logs, documents, and chat.
 
+Every B2B lead requires a valid normalized phone in both form and API. Preserve existing CRM stop/reply tags: add tags rather than replacing them, and verify returned phone identity before applying intake tags. The Lead Vault is a projection with D1 row reservations; do not physically reorder/delete its rows without a coordinated rebuild. Read the current release document for acceptance limits and recovery.
+
 Inspect the relevant implementation before making claims about it. Distinguish page availability, tracking markup, configured integrations, local mock tests, and observed end-to-end production delivery. Do not describe the latter as verified by a build or source inspection.
 
 ## Release upkeep

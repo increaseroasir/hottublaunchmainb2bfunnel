@@ -308,8 +308,8 @@ import { CONSENT_TEXT } from '../data/consent';
         <!-- Phone -->
         <div class="ppr-field">
           <label for="f-phone">Mobile Phone Number <span class="req">*</span></label>
-          <input id="f-phone" type="tel" name="phone" placeholder="+1 (979) 459-9221" autocomplete="tel" required />
-          <span class="field-error" data-error-for="phone"></span>
+          <input id="f-phone" type="tel" name="phone" placeholder="+1 (979) 459-9221" autocomplete="tel" required aria-describedby="f-phone-error" />
+          <span id="f-phone-error" class="field-error" data-error-for="phone" aria-live="polite"></span>
         </div>
 
         <!-- Store name -->
@@ -390,7 +390,6 @@ import { CONSENT_TEXT } from '../data/consent';
       const formEl = formNode;
 
       const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRe = /[0-9]{10,}/;
 
       // Handles inputs, selects AND RadioNodeList (the old instanceof-only
       // check returned '' for radios, so radio validation always failed).
@@ -414,7 +413,6 @@ import { CONSENT_TEXT } from '../data/consent';
         const firstName = value('first_name');
         const lastName = value('last_name');
         const email = value('email');
-        const phone = value('phone');
         const businessName = value('businessName');
         const state = value('state');
         const isOwner = value('isOwner');
@@ -425,7 +423,6 @@ import { CONSENT_TEXT } from '../data/consent';
         const eName = firstName.length >= 2 ? '' : 'First name is required.';
         const eLast = lastName.length >= 2 ? '' : 'Last name is required.';
         const eEmail = emailRe.test(email) ? '' : 'Enter a valid email address.';
-        const ePhone = phoneRe.test(phone) ? '' : 'Enter a valid phone number.';
         const eBusiness = businessName ? '' : 'Store name is required.';
         const eState = state ? '' : 'Select your state.';
         const eOwner = isOwner ? '' : 'Select an option.';
@@ -434,11 +431,10 @@ import { CONSENT_TEXT } from '../data/consent';
         setError('first_name', eName);
         setError('last_name', eLast);
         setError('email', eEmail);
-        setError('phone', ePhone);
         setError('businessName', eBusiness);
         setError('state', eState);
 
-        return !eName && !eLast && !eEmail && !ePhone && !eBusiness && !eState && !eOwner && !eVolume && terms;
+        return !eName && !eLast && !eEmail && !eBusiness && !eState && !eOwner && !eVolume && terms;
       }
 
       wireLeadForm({ form: formEl, validate });

@@ -94,12 +94,13 @@ export async function fireAlert(payload: Dict): Promise<void> {
     const headers: Record<string, string> = { 'Content-Type': 'application/json' };
     const secret = getEnv('ALERT_SECRET');
     if (secret) headers['X-Alert-Secret'] = secret;
-    await fetch(alertUrl, {
+    const res = await fetch(alertUrl, {
       method: 'POST',
       headers,
       body: JSON.stringify({ site: 'hottublaunch.com', at: new Date().toISOString(), ...payload }),
       signal: AbortSignal.timeout(5000),
     });
+    if (!res.ok) console.error('Alert webhook rejected:', res.status);
   } catch (e) {
     console.error('Alert webhook send failed:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 200) || '');
   }

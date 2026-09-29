@@ -535,8 +535,8 @@ const search = Astro.url.search;
             <!-- Phone -->
             <div class="field">
               <label for="f-phone">Mobile Phone Number <span class="req">*</span></label>
-              <input id="f-phone" type="tel" name="phone" placeholder="+1 (979) 459-9221" autocomplete="tel" required />
-              <span class="field-error" data-error-for="phone"></span>
+              <input id="f-phone" type="tel" name="phone" placeholder="+1 (979) 459-9221" autocomplete="tel" required aria-describedby="f-phone-error" />
+              <span id="f-phone-error" class="field-error" data-error-for="phone" aria-live="polite"></span>
             </div>
 
             <!-- Role (select) -->
@@ -615,7 +615,6 @@ const search = Astro.url.search;
       const formEl = formNode;
 
       const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-      const phoneRe = /[0-9]{10,}/; // at least 10 digits anywhere
 
       function value(name: string): string {
         const input = formEl.elements.namedItem(name) as { value?: string } | null;
@@ -637,7 +636,6 @@ const search = Astro.url.search;
         const firstName = value('first_name');
         const lastName = value('last_name');
         const email = value('email');
-        const phone = value('phone');
         const role = value('role');
         const termsEl = formEl.elements.namedItem('terms');
         const terms = termsEl instanceof HTMLInputElement ? termsEl.checked : false;
@@ -645,16 +643,14 @@ const search = Astro.url.search;
         const eName = firstName.length >= 2 ? '' : 'First name is required (at least 2 characters).';
         const eLast = lastName.length >= 2 ? '' : 'Last name is required (at least 2 characters).';
         const eEmail = emailRe.test(email) ? '' : 'Please enter a valid email address.';
-        const ePhone = phoneRe.test(phone) ? '' : 'Please enter a valid phone number (at least 10 digits).';
         const eRole = role ? '' : 'Please select your role.';
 
         setError('first_name', eName);
         setError('last_name', eLast);
         setError('email', eEmail);
-        setError('phone', ePhone);
         setError('role', eRole);
 
-        return !eName && !eLast && !eEmail && !ePhone && !eRole && terms;
+        return !eName && !eLast && !eEmail && !eRole && terms;
       }
 
       // Capture quiz answers from session storage (set by earlier funnel steps)

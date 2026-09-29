@@ -62,10 +62,14 @@ const showError = Astro.url.searchParams.get('error') === '1';
       id={`${id}-phone`}
       name="phone"
       type="tel"
+      required
+      aria-label="Phone number (required)"
+      aria-describedby={`${id}-phone-error`}
       autocomplete={ticket.fields.phone.autocomplete}
       placeholder={ticket.fields.phone.placeholder}
     />
   </label>
+  <span id={`${id}-phone-error`} class="field-error" data-error-for="phone" aria-live="polite"></span>
 
   <!-- Consent — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->
   <label class="lead-form-consent" style="display:flex;gap:.6rem;align-items:flex-start;cursor:pointer;font-size:.72rem;line-height:1.5;margin:.8rem 0 1rem">

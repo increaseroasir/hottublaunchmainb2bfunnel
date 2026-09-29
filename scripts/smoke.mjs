@@ -124,7 +124,7 @@ const unescapeHtml = (s) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').rep
 
 const ts = Date.now();
 const EMAIL = `smoke-${ts}@example.com`;
-const PHONE = '555' + String(ts).slice(-7); // 10 unique-ish digits per run
+const PHONE = '2025550142'; // reserved fictional US number; all integrations are local stubs
 
 async function main() {
   console.log(`\nSMOKE — base=${BASE} mode=${MODE}${BREAK ? ` BREAK=${BREAK}` : ''}\n`);
@@ -146,6 +146,38 @@ async function main() {
     if (!pprOk) bad.push(`/ppr→${ppr.status} Location=${loc}`);
     gate('G1 routes 200 + /ppr 301 preserves query', bad.length === 0, bad.join(', '));
   }
+  if (MODE !== 'live') {
+    const routes = ['/apply', '/check-territory', '/profit-playbook', '/case-study', '/webinar-registration'];
+    const bad = [];
+    for (const route of routes) {
+      const html = await (await get(route, null)).text();
+      const input = html.match(/<input[^>]*name="phone"[^>]*>/)?.[0] || '';
+      if (!input.includes('required') || !input.includes('aria-describedby') ||
+          !html.includes('data-error-for="phone"')) bad.push(route);
+    }
+    gate('G1a all five rendered forms require phone with an inline error target', bad.length === 0, bad.join(', '));
+  }
+
+  // Local-only phone gate: reject invalid requests before D1 or any downstream call.
+  if (MODE !== 'live' && stubAvailable) {
+    const invalid = ['', 'garbage', '202555', '+1 111 111 1111'];
+    const before = d1('SELECT COUNT(*) AS n FROM leads')[0]?.n ?? 0;
+    let allRejected = true;
+    for (const phone of invalid) {
+      const { res, data } = await postLead({ first_name: 'Phone', email: `invalid-${ts}@example.com`, phone }, null);
+      allRejected &&= res.status === 400 && data?.ok === false && String(data?.error).includes('phone');
+    }
+    const formRes = await rfetch(BASE + '/api/lead', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: BASE },
+      body: new URLSearchParams({ first_name: 'Phone', email: `invalid-form-${ts}@example.com`, phone: '' }),
+    });
+    const after = d1('SELECT COUNT(*) AS n FROM leads')[0]?.n ?? 0;
+    const state = await stub('/__state');
+    gate('G1b invalid JSON/form phone → 400, zero D1 inserts or service calls',
+      allRejected && formRes.status === 400 && before === after &&
+      state.ghl.length === 0 && state.capi.length === 0 && state.sheetRows.length === 1 &&
+      state.tokenCalls === 0 && state.alerts.length === 0);
+  }
 
   // ============ GATE 2 — tagged walk end-to-end, every attribution field non-empty ============
   const j1 = jar();
@@ -164,7 +196,7 @@ async function main() {
     const renderedOk = TAG_PARAMS.every((p) => renderedFirstQuery.includes(p));
 
     const payload = {
-      first_name: 'Smoke', last_name: 'Test', email: EMAIL, phone: PHONE,
+      first_name: 'Smoke', last_name: 'Test', email: EMAIL, phone: '+1 (202) 555-0142',
       businessName: 'Smoke Spa Co', state: 'MI', isOwner: 'yes', monthlyVolume: '5-10',
       terms: 'on', consentGiven: 'true', consentText, consentVersion,
       consentUrl: BASE + '/check-territory',
@@ -177,11 +209,11 @@ async function main() {
 
     let d1Ok = null, d1Detail = '';
     if (MODE !== 'live') {
-      const rows = d1(`SELECT utm_source, utm_medium, utm_campaign, utm_content, utm_term, first_query, first_url, landing_url, gclid, fbc, consent_text, contactable FROM leads WHERE lead_uuid='${data?.leadUuid}'`);
+      const rows = d1(`SELECT utm_source, utm_medium, utm_campaign, utm_content, utm_term, first_query, first_url, landing_url, gclid, fbc, consent_text, contactable, phone FROM leads WHERE lead_uuid='${data?.leadUuid}'`);
       const r = rows[0] || {};
       const need = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'first_query', 'first_url', 'landing_url', 'gclid', 'fbc', 'consent_text'];
       const empty = need.filter((k) => !r[k]);
-      d1Ok = rows.length === 1 && empty.length === 0 && r.contactable === 1;
+      d1Ok = rows.length === 1 && empty.length === 0 && r.contactable === 1 && r.phone === '+12025550142';
       d1Detail = empty.length ? 'empty: ' + empty.join(',') : rows.length !== 1 ? 'no row' : '';
     }
 
@@ -204,6 +236,12 @@ async function main() {
     const all = [cookieCarriesAll, renderedOk, contractOk, d1Ok !== false, capiOk !== false].every(Boolean);
     gate('G2 tagged walk: cookie → rendered fields → JSON contract → D1 → CAPI payload', all,
       [!cookieCarriesAll && 'first-touch cookie missing params', !renderedOk && `rendered firstQuery="${renderedFirstQuery}"`, !contractOk && `contract=${JSON.stringify(data)}`, d1Ok === false && `D1: ${d1Detail}`, capiOk === false && `CAPI: ${capiDetail}`].filter(Boolean).join(' | '));
+    if (stubAvailable) {
+      const st = await stub('/__state');
+      gate('G2b formatted phone → same E.164 in D1, GHL, Sheet',
+        d1Ok === true && st.ghl[0]?.body?.phone === '+12025550142' &&
+        st.sheetRows[1]?.[6] === '+12025550142');
+    }
   }
 
   // ============ GATE 3 — one submit → exactly one server event with the server's id ============
@@ -224,7 +262,7 @@ async function main() {
     const payload = {
       first_name: 'Smoke', last_name: 'Test',
       email: BREAK === 'dedup' ? `different-${ts}@example.com` : EMAIL,
-      phone: BREAK === 'dedup' ? '555' + String(ts + 1111111).slice(-7) : PHONE,
+      phone: BREAK === 'dedup' ? '2025550144' : PHONE,
       businessName: 'Smoke Spa Co', state: 'MI', isOwner: 'yes', monthlyVolume: '5-10',
       terms: 'on', consentGiven: 'true', consentText: 'x', consentVersion: 'v', consentUrl: BASE,
     };
@@ -243,7 +281,7 @@ async function main() {
   // ============ GATE 4b — C4: a prior FAILED conversion allows a retry ============
   if (stubAvailable && MODE !== 'live') {
     const em2 = `retry-${ts}@example.com`;
-    const ph2 = '444' + String(ts).slice(-7);
+    const ph2 = '2025550143';
     const mk = (j) => ({ first_name: 'Retry', last_name: 'Case', email: em2, phone: ph2, businessName: 'X Spa', state: 'MI', isOwner: 'yes', monthlyVolume: '5-10', terms: 'on', consentGiven: 'true', consentText: 'x', consentVersion: 'v', consentUrl: BASE });
     await stub('/__fail', { capi: 500 });
     const jA = jar(); await get('/', jA);
@@ -255,7 +293,7 @@ async function main() {
     const r2 = await postLead(mk(jB), jB);
     const s2 = d1(`SELECT conversion_status FROM leads WHERE lead_uuid='${r2.data?.leadUuid}'`)[0] || {};
     const ok = r1.data?.duplicate === false && s1.conversion_status === 'failed' && alerts1 >= 1 &&
-      r2.data?.duplicate === false && s2.conversion_status === 'ok';
+      r2.data?.duplicate === false && s2.conversion_status === 'ok' && r1.data?.eventId === r2.data?.eventId;
     gate('G4b failed conversion → alert fired + retry allowed, retry converts (C4/C6)', ok,
       `first=${s1.conversion_status}/${s1.capi_status} alerts=${alerts1} retryDup=${r2.data?.duplicate} retry=${s2.conversion_status}`);
   }
@@ -371,6 +409,108 @@ async function main() {
       if (BREAK === 'hygiene') rmSync(redteamFile, { force: true });
     }
     gate('G8 no test event code, no *.private.json, no secret-shaped literals', bad.length === 0, bad.join(' | '));
+  }
+
+  if (MODE !== 'live' && stubAvailable) {
+    const { res, data } = await postLead({
+      first_name: 'International', email: `international-${ts}@example.com`,
+      phone: '+44 20 7946 0958', terms: 'on', consentText: 'local test',
+    }, null);
+    const row = d1(`SELECT phone FROM leads WHERE lead_uuid='${data?.leadUuid}'`)[0];
+    const st = await stub('/__state');
+    gate('G9 explicit international number → E.164 in D1, GHL, Sheet',
+      res.status === 200 && row?.phone === '+442079460958' &&
+      st.ghl.at(-1)?.body?.phone === '+442079460958' &&
+      st.sheetRows.at(-1)?.[6] === '+442079460958');
+  }
+
+  if (MODE !== 'live' && stubAvailable) {
+    const st = await stub('/__state');
+    const crm = st.ghl.find(g => g.body.email === EMAIL)?.body;
+    const fields = Object.fromEntries((crm?.customFields || []).map(f => [f.id, f.value]));
+    gate('G10 CRM mapped fields and attribution tags by value',
+      crm?.companyName === 'Smoke Spa Co' && crm.state === 'MI' &&
+      fields['yeioLAoCT7jHzCYWYEkF'] === 'yes' && fields['gPNN7vcRqDYq6jGSwfdM'] === '5-10' &&
+      fields['7U1vCjmta2NKYw45k0kJ'] === lead1.leadUuid &&
+      !('tags' in crm) && ['source-testsrc', 'medium-cpc', 'campaign-c1', 'funnel-check-territory'].every(t => st.tagWrites[0]?.body.tags.includes(t)));
+    const mk = (n, id) => ({ first_name: 'Concurrent', email: `parallel-${ts}-${n}@example.com`,
+      phone: `20255501${String(50+n).padStart(2,'0')}`, businessName: '=SUM(1,2)', leadUuid: id });
+    const ids = Array.from({length: 8}, () => crypto.randomUUID());
+    const responses = await Promise.all(ids.map((id,n) => postLead(mk(n,id), null)));
+    const same = crypto.randomUUID();
+    await Promise.all(Array.from({length: 5}, () => postLead(mk(9,same), null)));
+    const rows = (await stub('/__state')).sheetRows;
+    const wanted = [...ids,same];
+    const writes = (await stub('/__state')).sheetWrites;
+    gate('G11 concurrent distinct/same UUIDs use unique explicit RAW rows, 31 columns',
+      responses.every(r => r.data?.ok) && wanted.every(id => rows.filter(r => r?.[1] === id).length === 1) &&
+      writes.every(w => w.valueInputOption === 'RAW' && w.row.length === 31) &&
+      rows.filter(r => wanted.includes(r?.[1])).every(r => r[7] === '=SUM(1,2)'));
+    const preserved = await postLead(mk(0,ids[0]), null);
+    gate('G12 successful repeat preserves event identity', preserved.data?.duplicate === true && preserved.data.eventId === responses[0].data.eventId);
+    const oldId = crypto.randomUUID();
+    const cutoff = new Date(Date.now() - 25*3600000).toISOString();
+    d1(`INSERT INTO leads (lead_uuid,event_id,name,email,phone,conversion_status,created_at,updated_at) VALUES ('${oldId}','old-event','Old','old-${ts}@example.com','+12025550179','ok','${cutoff}','${cutoff}')`);
+    const aged = await postLead({first_name:'Aged', email:`old-${ts}@example.com`,phone:'2025550179'},null);
+    gate('G13 ISO timestamp older than 24h is not suppressed', aged.data?.duplicate === false && aged.data?.eventId !== 'old-event');
+    const returningId = crypto.randomUUID();
+    const returning = {first_name:'Returning',email:`returning-${ts}@example.com`,phone:'2025550178',leadUuid:returningId};
+    d1(`INSERT INTO leads (lead_uuid,event_id,name,email,phone,conversion_status,created_at,updated_at) VALUES ('${returningId}','expired-success','Returning','${returning.email}','+12025550178','ok','${cutoff}','${cutoff}')`);
+    d1("CREATE TRIGGER fail_rollover_status BEFORE UPDATE OF sheet_status ON leads BEGIN SELECT RAISE(FAIL, 'local rollover status failure'); END");
+    await stub('/__fail', {capi:500});
+    const rollover = await postLead(returning,null);
+    const pending = d1(`SELECT event_id,conversion_status FROM leads WHERE lead_uuid='${returningId}'`)[0];
+    d1('DROP TRIGGER fail_rollover_status');
+    await stub('/__fail', {});
+    const rolloverRetry = await postLead(returning,null);
+    const succeeded = d1(`SELECT event_id,conversion_status FROM leads WHERE lead_uuid='${returningId}'`)[0];
+    gate('G13b same UUID after 25h gets new ID/pending status; interrupted failure retries same new ID',
+      rollover.data?.duplicate === false && rollover.data.eventId !== 'expired-success' &&
+      pending.conversion_status === 'pending' && pending.event_id === rollover.data.eventId &&
+      rolloverRetry.data?.duplicate === false && rolloverRetry.data.eventId === rollover.data.eventId &&
+      succeeded.conversion_status === 'ok' && succeeded.event_id === rollover.data.eventId);
+    await stub('/__fail', { sheet: 503, alert: 503 });
+    const failId = crypto.randomUUID();
+    const failed = await postLead(mk(10,failId),null);
+    await stub('/__fail', {});
+    const retry = await postLead(mk(10,failId),null);
+    gate('G14 Sheet outage/alert rejection preserves D1 capture; retry recovers one row',
+      failed.data?.ok && retry.data?.ok &&
+      (await stub('/__state')).sheetRows.filter(r => r?.[1] === failId).length === 1 &&
+      (await stub('/__state')).alerts.some(a => a.body.alert === 'SHEET_UPSERT_FAILED' && a.body.lead_uuid === failId));
+    await stub('/__fail', {omitPhone:true});
+    const verified = await postLead(mk(13,crypto.randomUUID()),null);
+    let crmState = await stub('/__state');
+    const contactId = d1(`SELECT ghl_contact_id FROM leads WHERE lead_uuid='${verified.data.leadUuid}'`)[0].ghl_contact_id;
+    gate('G17 additive tag sync retains stop/reply/consent/business tags after contact GET verification',
+      verified.data.ok && ['m-replied','x-stop-drip','consent-captured','existing-business','htl-b2b-website'].every(t=>crmState.contacts[contactId]?.tags.includes(t)) &&
+      !crmState.ghl.at(-1).body.tags);
+    await stub('/__fail', {phoneMismatch:true});
+    const tagCount = crmState.tagWrites.length;
+    const mismatch = await postLead(mk(14,crypto.randomUUID()),null);
+    crmState = await stub('/__state');
+    const mismatchRow = d1(`SELECT ghl_status, phone FROM leads WHERE lead_uuid='${mismatch.data.leadUuid}'`)[0];
+    gate('G18 CRM phone mismatch retains callable D1 lead, alerts, never adds intake tags',
+      mismatch.data.ok && mismatchRow.ghl_status === 'failed:phone-mismatch' && mismatchRow.phone === '+12025550164' &&
+      crmState.tagWrites.length === tagCount && crmState.alerts.some(a=>a.body.alert==='GHL_PHONE_MISMATCH' && a.body.lead_uuid===mismatch.data.leadUuid));
+    await stub('/__fail', {tags:503});
+    const tagFailure = await postLead(mk(15,crypto.randomUUID()),null);
+    const tagStatus = d1(`SELECT ghl_status FROM leads WHERE lead_uuid='${tagFailure.data.leadUuid}'`)[0];
+    gate('G19 failed tag sync is recorded and alerted without losing capture',tagFailure.data.ok && tagStatus.ghl_status === 'failed:tag-sync' &&
+      (await stub('/__state')).alerts.some(a=>a.body.alert==='GHL_TAG_SYNC_FAILED' && a.body.lead_uuid===tagFailure.data.leadUuid));
+    await stub('/__fail', {});
+    d1("CREATE TRIGGER fail_final_status BEFORE UPDATE OF sheet_status ON leads BEGIN SELECT RAISE(FAIL, 'local final status failure'); END");
+    const statusFail = await postLead(mk(11,crypto.randomUUID()),null);
+    d1('DROP TRIGGER fail_final_status');
+    gate('G15 final D1 status failure alerts while preserving capture', statusFail.data?.ok &&
+      (await stub('/__state')).alerts.some(a => a.body.alert === 'D1_STATUS_WRITE_FAILED' && a.body.lead_uuid === statusFail.data.leadUuid));
+    d1("CREATE TRIGGER fail_capture BEFORE INSERT ON leads BEGIN SELECT RAISE(FAIL, 'local capture failure'); END");
+    d1("CREATE TRIGGER fail_reservation BEFORE INSERT ON sheet_row_reservations BEGIN SELECT RAISE(FAIL, 'local reservation failure'); END");
+    await stub('/__fail', {ghl:503});
+    const native = await rfetch(BASE + '/api/lead', {method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded',Origin:BASE},body:new URLSearchParams(mk(12,crypto.randomUUID()))});
+    d1('DROP TRIGGER fail_capture'); d1('DROP TRIGGER fail_reservation');
+    await stub('/__fail', {});
+    gate('G16 native stored-nowhere fails honestly without success redirect',native.status === 503 && !native.headers.get('location'));
   }
 
   console.log('');

@@ -56,14 +56,276 @@ const CAMPAIGN_STATS = [
     .pc-hero .booked::before{content:"●";font-size:.6em}
     .pc-hero .lede{font-size:1.08rem;max-width:46ch}
     .pc-hero .hero-actions{display:flex;gap:.8rem;flex-wrap:wrap;margin-top:var(--s-2)}
-    .pc-hero .hero-visual{position:relative;min-height:500px}
-    .pc-hero .hero-main{width:100%;max-width:580px}
-    .pc-hero .hero-float{
-      position:absolute;width:38%;max-width:230px;border-radius:var(--r-sm);
-      border:1px solid var(--line);box-shadow:var(--el-3);background:var(--paper);
+    .pc-hero .hero-visual{position:relative;min-height:0}
+
+    /* Northridge live demo — device chrome */
+    .pre-call .nr-laptop{
+      position:relative;max-width:560px;margin:0 auto 20px;
+      background:linear-gradient(175deg,var(--ink-2) 0%,var(--ink) 55%);
+      border-radius:18px 18px 6px 6px;padding:12px 12px 16px;
+      box-shadow:inset 0 1px 0 rgba(250,247,242,.10),var(--el-ink),0 46px 80px -34px rgba(0,0,0,.55);
     }
-    .pc-hero .hero-float.product{right:-2%;bottom:8%}
-    .pc-hero .hero-float.price{left:-2%;bottom:-4%}
+    .pre-call .nr-laptop::before{ /* webcam */
+      content:"";position:absolute;top:5px;left:50%;transform:translateX(-50%);
+      width:5px;height:5px;border-radius:50%;
+      background:rgba(250,247,242,.28);box-shadow:inset 0 0 2px rgba(0,0,0,.8);
+    }
+    .pre-call .nr-deck{ /* aluminum base */
+      position:absolute;left:-5%;right:-5%;bottom:-13px;height:13px;
+      background:linear-gradient(180deg,var(--muted-dark) 0%,var(--line) 55%,var(--muted-dark) 100%);
+      border-radius:2px 2px 14px 14px;
+      box-shadow:0 20px 32px -14px rgba(0,0,0,.45);
+    }
+    .pre-call .nr-deck::before{ /* thumb notch */
+      content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);
+      width:76px;height:6px;border-radius:0 0 8px 8px;
+      background:linear-gradient(180deg,rgba(25,25,25,.35),rgba(25,25,25,.1));
+    }
+    .pre-call .nr-chrome{
+      display:flex;align-items:center;gap:8px;padding:2px 6px 10px;
+    }
+    .pre-call .nr-dots{display:flex;gap:5px}
+    .pre-call .nr-dots i{width:8px;height:8px;border-radius:50%;background:rgba(250,247,242,.22);display:block}
+    .pre-call .nr-dots i:first-child{background:var(--red)}
+    .pre-call .nr-url{
+      flex:1;display:flex;align-items:center;gap:.4rem;
+      background:rgba(250,247,242,.08);color:rgba(250,247,242,.72);
+      font-size:.68rem;letter-spacing:.02em;padding:.35rem .7rem;border-radius:99px;
+      font-family:'Manrope',system-ui,sans-serif;
+    }
+    .pre-call .nr-url::before{ /* padlock body + shackle */
+      content:"";width:7px;height:6px;flex:none;border-radius:1.5px;
+      background:rgba(250,247,242,.55);position:relative;top:1px;
+      box-shadow:0 -3px 0 -1px rgba(250,247,242,.45);
+    }
+    .pre-call .nr-screen{
+      position:relative;background:var(--cream);border-radius:8px;overflow:hidden;aspect-ratio:16/10.2;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,.35),inset 0 0 20px rgba(0,0,0,.10);
+    }
+    .pre-call .nr-screen::after{ /* glass glare */
+      content:"";position:absolute;inset:0;pointer-events:none;z-index:3;
+      background:linear-gradient(112deg,rgba(255,255,255,.16) 0%,rgba(255,255,255,.05) 26%,transparent 42%);
+    }
+    .pre-call .nr-desk{height:100%;display:flex;flex-direction:column;font-size:11px;line-height:1.35;color:var(--ink-soft)}
+    .pre-call .nr-desk .nr-top{
+      display:flex;align-items:center;justify-content:space-between;gap:.6rem;
+      padding:.55rem .8rem;background:var(--ink);color:var(--cream);
+    }
+    .pre-call .nr-mark{
+      font-family:'Montserrat',sans-serif;font-weight:900;font-size:.72rem;
+      letter-spacing:.08em;text-transform:uppercase;color:var(--cream);
+    }
+    .pre-call .nr-nav{display:flex;gap:.7rem;font-size:.58rem;letter-spacing:.1em;text-transform:uppercase;opacity:.7}
+    .pre-call .nr-cta{
+      background:var(--red);color:#fff;border:0;border-radius:3px;padding:.35rem .65rem;
+      font-family:'Montserrat',sans-serif;font-weight:800;font-size:.55rem;letter-spacing:.06em;text-transform:uppercase;
+    }
+    .pre-call .nr-desk .nr-body{display:grid;grid-template-columns:1.15fr .85fr;gap:.8rem;padding:.8rem;flex:1;min-height:0}
+    .pre-call .nr-desk h3{
+      font-size:.95rem;margin:0 0 .4rem;text-transform:uppercase;letter-spacing:-.02em;
+    }
+    .pre-call .nr-desk p{font-size:.62rem;max-width:none;margin:0 0 .55rem;color:var(--muted)}
+    .pre-call .nr-zip{
+      display:flex;gap:4px;background:var(--paper);border:1px solid var(--line);border-radius:4px;padding:4px;
+    }
+    .pre-call .nr-zip input{
+      flex:1;border:0;background:transparent;font:inherit;font-size:.62rem;padding:.25rem .4rem;min-width:0;color:var(--ink);
+    }
+    .pre-call .nr-zip input:focus{outline:none}
+    .pre-call .nr-tub{
+      position:relative;border-radius:6px;background:
+        linear-gradient(180deg,rgba(25,25,25,.15),rgba(25,25,25,.45)),
+        url('/images/pre-call/13-founders/03-manny-trailer.webp') center/cover no-repeat;
+      min-height:0;
+    }
+    .pre-call .nr-tag{
+      position:absolute;left:8px;bottom:8px;background:var(--paper);color:var(--ink);
+      font-family:'Montserrat',sans-serif;font-weight:900;font-size:.6rem;letter-spacing:.02em;
+      padding:.3rem .5rem;border-radius:4px;box-shadow:var(--el-1);line-height:1.2;
+    }
+    .pre-call .nr-tag small{
+      display:block;font-family:'Manrope',sans-serif;font-weight:600;font-size:.46rem;
+      color:var(--muted);letter-spacing:.04em;text-transform:uppercase;
+    }
+    .pre-call .nr-fin{display:flex;gap:.35rem;margin-top:.5rem;flex-wrap:wrap}
+    .pre-call .nr-chip{
+      font-family:'Montserrat',sans-serif;font-weight:700;font-size:.48rem;letter-spacing:.06em;
+      text-transform:uppercase;color:var(--ink-soft);background:var(--paper);
+      border:1px solid var(--line);border-radius:99px;padding:.26rem .5rem;
+    }
+    .pre-call .nr-stock{
+      font-family:'Montserrat',sans-serif;font-weight:800;font-size:.5rem;letter-spacing:.12em;
+      text-transform:uppercase;color:var(--red);margin-bottom:.25rem;
+    }
+
+    .pre-call .nr-phone{
+      width:min(300px,100%);margin-inline:auto;position:relative;
+      background:linear-gradient(160deg,var(--ink-2) 0%,var(--ink) 70%);
+      border-radius:46px;padding:13px 11px;
+      box-shadow:
+        inset 0 0 0 1px rgba(250,247,242,.12),
+        inset 0 0 0 3px rgba(0,0,0,.55),
+        var(--el-ink),0 44px 80px -30px rgba(0,0,0,.6);
+    }
+    .pre-call .nr-phone::before{ /* dynamic island + camera dot */
+      content:"";position:absolute;top:23px;left:50%;transform:translateX(-50%);z-index:4;
+      width:86px;height:24px;border-radius:99px;
+      background:
+        radial-gradient(circle at 74% 50%,rgba(250,247,242,.25) 0 3px,transparent 4px),
+        rgba(0,0,0,.92);
+      box-shadow:0 1px 3px rgba(0,0,0,.5);
+    }
+    .pre-call .nr-glare{ /* glass glare over the scrolling screen */
+      position:absolute;inset:13px 11px;border-radius:34px;pointer-events:none;z-index:3;
+      background:linear-gradient(118deg,rgba(255,255,255,.13) 0%,rgba(255,255,255,.03) 24%,transparent 40%);
+    }
+    .pre-call .nr-phone-screen{
+      height:540px;background:var(--cream);border-radius:34px;overflow-y:auto;
+      overscroll-behavior:contain;scroll-behavior:smooth;position:relative;
+      -webkit-overflow-scrolling:touch;
+      box-shadow:inset 0 0 0 1px rgba(0,0,0,.4);
+    }
+    .pre-call .nr-phone-screen::-webkit-scrollbar{width:6px}
+    .pre-call .nr-phone-screen::-webkit-scrollbar-track{background:transparent}
+    .pre-call .nr-phone-screen::-webkit-scrollbar-thumb{background:var(--line);border:0}
+    .pre-call .nr-hint{
+      position:absolute;left:10px;right:10px;bottom:22px;z-index:2;pointer-events:none;
+      text-align:center;font-family:'Montserrat',sans-serif;font-weight:800;font-size:.58rem;
+      letter-spacing:.12em;text-transform:uppercase;color:var(--cream);
+      background:rgba(25,25,25,.72);padding:.55rem;border-radius:99px;
+      transition:opacity .35s var(--e-out);
+    }
+    .pre-call .nr-phone.is-scrolled .nr-hint{opacity:0}
+    .pre-call .nr-m{font-size:13px;line-height:1.4;color:var(--ink-soft)}
+    .pre-call .nr-appbar{position:sticky;top:0;z-index:2;transition:box-shadow .25s var(--e-soft)}
+    .pre-call .nr-phone.is-scrolled .nr-appbar{box-shadow:0 8px 18px -8px rgba(0,0,0,.45)}
+    .pre-call .nr-status{
+      display:flex;justify-content:space-between;align-items:center;
+      padding:.6rem 1rem .1rem;background:var(--ink);color:var(--cream);
+      font-family:'Montserrat',sans-serif;font-weight:700;font-size:.6rem;letter-spacing:.03em;
+    }
+    .pre-call .nr-status .right{display:inline-flex;align-items:center;gap:4px}
+    .pre-call .nr-sig{display:inline-flex;align-items:flex-end;gap:1.5px}
+    .pre-call .nr-sig i{width:2.5px;background:var(--cream);border-radius:1px;display:block}
+    .pre-call .nr-sig i:nth-child(1){height:3px}
+    .pre-call .nr-sig i:nth-child(2){height:5px}
+    .pre-call .nr-sig i:nth-child(3){height:7px}
+    .pre-call .nr-sig i:nth-child(4){height:9px;background:rgba(250,247,242,.45)}
+    .pre-call .nr-batt{
+      width:17px;height:9px;border:1px solid rgba(250,247,242,.6);border-radius:2.5px;
+      position:relative;display:inline-block;
+    }
+    .pre-call .nr-batt::before{content:"";position:absolute;inset:1px;right:4px;background:var(--cream);border-radius:1px}
+    .pre-call .nr-batt::after{
+      content:"";position:absolute;right:-3px;top:2px;width:2px;height:4px;
+      background:rgba(250,247,242,.6);border-radius:0 1px 1px 0;
+    }
+    .pre-call .nr-m .nr-top{padding:.5rem .85rem .6rem;background:var(--ink);color:var(--cream)}
+    .pre-call .nr-m .nr-mark{font-size:.78rem}
+    .pre-call .nr-m .nr-nav{display:none}
+    .pre-call .nr-banner{
+      background:var(--red);color:#fff;text-align:center;font-size:.62rem;font-weight:700;
+      letter-spacing:.08em;text-transform:uppercase;padding:.4rem .6rem;
+    }
+    .pre-call .nr-m .nr-pad{padding:.9rem .85rem 1.1rem}
+    .pre-call .nr-m h3{font-size:1.15rem;margin:0 0 .45rem}
+    .pre-call .nr-m p{max-width:none;font-size:.78rem;margin:0 0 .7rem;color:var(--muted)}
+    .pre-call .nr-m .nr-zip{padding:5px}
+    .pre-call .nr-m .nr-zip input{font-size:.78rem;padding:.4rem}
+    .pre-call .nr-m .nr-cta{font-size:.65rem;padding:.55rem .75rem;cursor:pointer}
+    .pre-call .nr-hero-pic{
+      height:150px;margin:.2rem .85rem .4rem;border-radius:10px;
+      background:
+        linear-gradient(180deg,transparent 40%,rgba(25,25,25,.55)),
+        url('/images/pre-call/13-founders/03-manny-trailer.webp') center/cover no-repeat;
+    }
+    .pre-call .nr-cards{display:grid;gap:.65rem;padding:0 .85rem 1rem}
+    .pre-call .nr-card{
+      background:var(--paper);border:1px solid var(--line);border-radius:10px;overflow:hidden;
+      box-shadow:var(--el-1);
+    }
+    .pre-call .nr-card .pic{position:relative;height:96px;background:var(--ink-2) center/cover no-repeat}
+    .pre-call .nr-card .pic.a{background-image:url('/images/pre-call/13-founders/03-manny-trailer.webp')}
+    .pre-call .nr-card .pic.b{background-image:url('/images/pre-call/13-founders/04-alex-studio.webp')}
+    .pre-call .nr-card .pic.c{background-image:url('/images/pre-call/13-founders/05-alex-tradeshow.webp')}
+    .pre-call .nr-card .pic .flag{
+      position:absolute;top:6px;left:6px;background:var(--red);color:#fff;border-radius:3px;
+      font-family:'Montserrat',sans-serif;font-weight:800;font-size:.48rem;
+      letter-spacing:.08em;text-transform:uppercase;padding:.22rem .4rem;
+    }
+    .pre-call .nr-card .pic .flag.alt{background:rgba(25,25,25,.82)}
+    .pre-call .nr-card .body{padding:.6rem .7rem .7rem}
+    .pre-call .nr-card strong{
+      display:block;font-family:'Montserrat',sans-serif;font-weight:800;font-size:.72rem;
+      letter-spacing:.04em;text-transform:uppercase;color:var(--ink);
+    }
+    .pre-call .nr-card .spec{font-size:.66rem;color:var(--muted);display:block}
+    .pre-call .nr-price{display:flex;align-items:baseline;gap:.35rem;margin:.3rem 0 .45rem}
+    .pre-call .nr-price b{font-family:'Montserrat',sans-serif;font-weight:900;font-size:.95rem;color:var(--ink)}
+    .pre-call .nr-price small{font-size:.56rem;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+    .pre-call .nr-row{display:flex;align-items:center;justify-content:space-between;gap:.5rem}
+    .pre-call .nr-mini{font-size:.62rem;color:var(--muted)}
+    .pre-call .nr-book{
+      background:var(--paper);border:1.5px solid var(--ink);color:var(--ink);border-radius:5px;
+      font-family:'Montserrat',sans-serif;font-weight:800;font-size:.55rem;
+      letter-spacing:.06em;text-transform:uppercase;padding:.4rem .6rem;cursor:pointer;
+      transition:transform .15s var(--e-spring),background .15s var(--e-soft),color .15s var(--e-soft);
+    }
+    .pre-call .nr-book:hover{background:var(--ink);color:var(--cream)}
+    .pre-call .nr-book:active{transform:scale(.95)}
+    .pre-call .nr-sec-label{
+      font-family:'Montserrat',sans-serif;font-weight:800;font-size:.58rem;letter-spacing:.14em;
+      text-transform:uppercase;color:var(--red);padding:.4rem .85rem 0;
+    }
+    .pre-call .nr-slots{display:grid;grid-template-columns:1fr 1fr;gap:.45rem;padding:.5rem .85rem 1.2rem}
+    .pre-call .nr-slot{
+      border:1px solid var(--line);background:var(--paper);border-radius:8px;padding:.55rem .5rem;
+      font:inherit;font-size:.7rem;color:inherit;text-align:center;cursor:pointer;
+      transition:border-color .15s var(--e-soft),box-shadow .15s var(--e-soft),transform .15s var(--e-spring);
+    }
+    .pre-call .nr-slot:active{transform:scale(.96)}
+    .pre-call .nr-slot b{display:block;font-family:'Montserrat',sans-serif;font-size:.62rem;letter-spacing:.06em}
+    .pre-call .nr-slot.sel{border-color:var(--red);box-shadow:0 0 0 2px rgba(206,17,38,.16)}
+    .pre-call .nr-slot.sel b{color:var(--red)}
+    .pre-call .nr-slot.held{opacity:.5;cursor:default}
+    .pre-call .nr-sticky{
+      position:sticky;bottom:0;z-index:2;display:grid;grid-template-columns:1fr 1fr 1.4fr;gap:4px;
+      background:var(--ink);padding:.45rem;color:var(--cream);font-size:.55rem;
+      font-family:'Montserrat',sans-serif;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:center;
+      box-shadow:0 -8px 18px -10px rgba(0,0,0,.4);
+    }
+    .pre-call .nr-sticky span{padding:.45rem .2rem;border:1px solid rgba(250,247,242,.2);border-radius:4px}
+    .pre-call .nr-sticky span.go{
+      background:var(--red);border-color:var(--red);color:#fff;
+      transition:transform .2s var(--e-spring);
+    }
+    .pre-call .nr-sticky span.go.pulse{animation:nrPulse .45s var(--e-spring)}
+    @keyframes nrPulse{0%{transform:scale(1)}40%{transform:scale(1.06)}100%{transform:scale(1)}}
+    .pre-call .nr-zip{transition:border-color .15s var(--e-soft),box-shadow .15s var(--e-soft)}
+    .pre-call .nr-zip.err{border-color:var(--red);box-shadow:0 0 0 2px rgba(206,17,38,.14)}
+    .pre-call .nr-cta.busy{opacity:.7;pointer-events:none}
+    .pre-call .nr-flash{
+      display:none;margin-top:.55rem;padding:.55rem .65rem;background:var(--paper);
+      border:1px solid var(--line);border-left:3px solid var(--red);border-radius:4px;
+      font-size:.72rem;color:var(--ink);
+    }
+    .pre-call .nr-flash.on{display:block}
+    /* staggered in-phone reveal (guarded for reduced motion) */
+    @media (prefers-reduced-motion:no-preference){
+      .pre-call .nr-reveal{opacity:0;transform:translateY(12px);transition:opacity .5s var(--e-out),transform .5s var(--e-out)}
+      .pre-call .nr-reveal.in{opacity:1;transform:none}
+      .pre-call .nr-cards .nr-reveal:nth-child(2){transition-delay:.08s}
+      .pre-call .nr-cards .nr-reveal:nth-child(3){transition-delay:.16s}
+      .pre-call .nr-flash.on{animation:nrFlash .4s var(--e-out)}
+      @keyframes nrFlash{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+    }
+
+    .pc-showroom .nr-stage{
+      display:flex;align-items:flex-end;justify-content:center;gap:var(--s-2);flex-wrap:wrap;
+    }
+    .pc-showroom .nr-caption{
+      text-align:center;margin-top:var(--s-2);font-size:.82rem;color:var(--muted);max-width:42ch;margin-inline:auto;
+    }
 
     /* ---------- 02 WELCOME VIDEO ---------- */
     .pc-video .player{
@@ -182,7 +444,8 @@ const CAMPAIGN_STATS = [
     /* ---------- 14 APPOINTMENT ---------- */
     .pc-final .card{
       max-width:800px;margin-inline:auto;text-align:center;background:var(--paper);
-      border:1px solid var(--line);border-radius:var(--r-xl);box-shadow:var(--el-3);
+      border:1px solid var(--line);border-radius:var(--r-xl);
+      box-shadow:var(--el-3);
       padding:var(--s-3) var(--s-2);
     }
     .pc-final img.logo{height:36px;width:auto;margin:0 auto var(--s-2)}
@@ -200,9 +463,10 @@ const CAMPAIGN_STATS = [
     /* ---------- MOBILE ---------- */
     @media (max-width:880px){
       .pc-hero .wrap,.pc-showroom .grid,.pc-founders .grid{grid-template-columns:1fr}
-      .pc-hero .hero-visual{min-height:0;margin-top:var(--s-2)}
-      .pc-hero .hero-float{display:none}
-      .pc-hero .hero-main{max-width:100%}
+      .pc-hero .hero-visual{margin-top:var(--s-2)}
+      .pre-call .nr-laptop{max-width:100%}
+      .pre-call .nr-deck{left:-2%;right:-2%}
+      .pre-call .nr-desk .nr-nav{display:none}
 
       .pc-path ol{flex-direction:column;max-width:420px;gap:0}
       .pc-path li{
@@ -213,8 +477,7 @@ const CAMPAIGN_STATS = [
       .pc-path li:last-child{border-radius:0 0 var(--r-sm) var(--r-sm)}
       .pc-path li::before{margin-bottom:0}
 
-      .pc-showroom .comp .mobiles .shot{width:min(240px,60%)}
-      .pc-showroom .comp .mobiles{flex-direction:column;align-items:center}
+      .pc-showroom .nr-stage .nr-laptop{display:none}
 
       .pc-handoff .steps{grid-template-columns:1fr;max-width:340px;margin-inline:auto}
       .pc-handoff .shot{max-width:260px}
@@ -249,15 +512,41 @@ const CAMPAIGN_STATS = [
           </div>
         </div>
         <div class="hero-visual">
-          <picture>
-            <source media="(max-width:880px)" srcset={`${IMG}/01-hero/hero-online-showroom-mobile.webp`} />
-            <img class="shot hero-main" src={`${IMG}/01-hero/hero-online-showroom-desktop.webp`}
-              alt="The Hot Tub Launch online showroom — live homepage" loading="eager" />
-          </picture>
-          <img class="hero-float product" src={`${IMG}/01-hero/hero-aquatrainer-product.webp`}
-            alt="AquaTrainer product page in the online showroom" loading="lazy" />
-          <img class="hero-float price" src={`${IMG}/01-hero/hero-price-request.webp`}
-            alt="Live pricing and availability request" loading="lazy" />
+          <div class="nr-laptop" aria-hidden="false">
+            <div class="nr-chrome">
+              <span class="nr-dots"><i></i><i></i><i></i></span>
+              <span class="nr-url">northridgehottubs.com</span>
+            </div>
+            <div class="nr-screen">
+              <div class="nr-desk">
+                <div class="nr-top">
+                  <span class="nr-mark">Northridge Hot Tubs</span>
+                  <span class="nr-nav">Inventory · Swim Spas · Visit</span>
+                  <span class="nr-cta">Shop inventory</span>
+                </div>
+                <div class="nr-body">
+                  <div>
+                    <p class="nr-stock">8 in stock this week</p>
+                    <h3>Shop the floor before you drive over</h3>
+                    <p>Real units. Written out-the-door prices. Book a wet test in two taps.</p>
+                    <div class="nr-zip">
+                      <input value="91326" readonly tabindex="-1" aria-hidden="true" />
+                      <span class="nr-cta">Get local price</span>
+                    </div>
+                    <div class="nr-fin">
+                      <span class="nr-chip">From $139/mo</span>
+                      <span class="nr-chip">0% · 12 mo</span>
+                      <span class="nr-chip">Wet tests daily</span>
+                    </div>
+                  </div>
+                  <div class="nr-tub" role="img" aria-label="Northridge showroom inventory">
+                    <span class="nr-tag">$9,450<small>out-the-door</small></span>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="nr-deck"></div>
+          </div>
         </div>
       </div>
     </section>
@@ -277,7 +566,6 @@ const CAMPAIGN_STATS = [
         <div class="player">
           <video controls preload="none" playsinline
             poster={`${IMG}/02-welcome-video/precall-welcome-poster-desktop.webp`}>
-            <source src={`${IMG}/02-welcome-video/precall-welcome.mp4`} type="video/mp4" />
           </video>
         </div>
       </div>
@@ -303,32 +591,106 @@ const CAMPAIGN_STATS = [
     </section>
 
     <!-- ============ 04 · ONLINE SHOWROOM ============ -->
-    <section class="pc-showroom">
+    <section class="pc-showroom" id="showroom">
       <div class="wrap">
         <div class="grid">
           <div class="sec-head">
             <span class="eyebrow">The online showroom</span>
             <h2>Buyers can actually shop</h2>
             <p>
-              This isn't paid traffic dumped on a generic dealer homepage. In the
-              showroom, a buyer can browse real inventory, inspect a specific tub,
-              ask for an out-the-door price, and see financing — every screen below
-              is live today.
+              This is a working storefront — Northridge Hot Tubs. Scroll the phone:
+              inventory, a specific tub, an out-the-door price, then a showroom time.
+              That's the path ads are supposed to buy.
             </p>
           </div>
-          <div class="comp">
-            <img class="shot" src={`${IMG}/04-online-showroom/01-homepage-desktop.webp`}
-              alt="Showroom homepage — San Diego hot tub store hero with local price form" loading="lazy" />
-            <div class="mobiles">
-              <img class="shot" src={`${IMG}/04-online-showroom/02-product-card-mobile.webp`}
-                alt="Mobile product card — Hydropool AquaTrainer inventory and availability" loading="lazy" />
-              <img class="shot" src={`${IMG}/04-online-showroom/04-price-financing-mobile.webp`}
-                alt="Mobile product detail — written out-the-door price form and financing CTA" loading="lazy" />
+          <div class="nr-stage">
+            <div class="nr-phone" id="nrPhone">
+              <p class="nr-hint">Scroll the phone →</p>
+              <span class="nr-glare" aria-hidden="true"></span>
+              <div class="nr-phone-screen" id="nrScreen" tabindex="0">
+                <div class="nr-m">
+                  <div class="nr-appbar">
+                    <div class="nr-status" aria-hidden="true">
+                      <span>9:41</span>
+                      <span class="right">
+                        <span class="nr-sig"><i></i><i></i><i></i><i></i></span>
+                        <span>5G</span>
+                        <span class="nr-batt"></span>
+                      </span>
+                    </div>
+                    <div class="nr-top">
+                      <span class="nr-mark">Northridge Hot Tubs</span>
+                    </div>
+                    <div class="nr-banner">In-stock · wet-test this week</div>
+                  </div>
+                  <div class="nr-hero-pic"></div>
+                  <div class="nr-pad">
+                    <p class="nr-stock">Your market · example store</p>
+                    <h3>See it. Price it. Book it.</h3>
+                    <p>ZIP checks live inventory. Your salesperson gets the tub they asked about — not a blank lead.</p>
+                    <div class="nr-zip">
+                      <input id="nrZip" name="nr_zip" inputmode="numeric" maxlength="5" placeholder="ZIP" value="91326" />
+                      <button class="nr-cta" type="button" id="nrPriceBtn">Get local price</button>
+                    </div>
+                    <p class="nr-flash" id="nrFlash" role="status">2 RidgeLine 14s in ZIP 91326. Out-the-door quote texts in under a minute.</p>
+                  </div>
+                  <p class="nr-sec-label">On the floor</p>
+                  <div class="nr-cards">
+                    <article class="nr-card nr-reveal">
+                      <div class="pic a"><span class="flag">In stock</span></div>
+                      <div class="body">
+                        <strong>RidgeLine 14</strong>
+                        <span class="spec">7 seats · 54 jets · lounger</span>
+                        <div class="nr-price"><b>$9,450</b><small>out-the-door</small></div>
+                        <div class="nr-row">
+                          <span class="nr-mini">From $139/mo</span>
+                          <button class="nr-book" type="button" data-book>Book wet test</button>
+                        </div>
+                      </div>
+                    </article>
+                    <article class="nr-card nr-reveal">
+                      <div class="pic b"><span class="flag alt">2 left</span></div>
+                      <div class="body">
+                        <strong>Cove Swim 17</strong>
+                        <span class="spec">Swim current · 2 therapy seats</span>
+                        <div class="nr-price"><b>$21,900</b><small>out-the-door</small></div>
+                        <div class="nr-row">
+                          <span class="nr-mini">From $318/mo</span>
+                          <button class="nr-book" type="button" data-book>Book wet test</button>
+                        </div>
+                      </div>
+                    </article>
+                    <article class="nr-card nr-reveal">
+                      <div class="pic c"><span class="flag">This week</span></div>
+                      <div class="body">
+                        <strong>Parkview 7</strong>
+                        <span class="spec">Plug-and-play · 110V · seats 4</span>
+                        <div class="nr-price"><b>$5,995</b><small>out-the-door</small></div>
+                        <div class="nr-row">
+                          <span class="nr-mini">From $92/mo</span>
+                          <button class="nr-book" type="button" data-book>Book wet test</button>
+                        </div>
+                      </div>
+                    </article>
+                  </div>
+                  <p class="nr-sec-label" id="nrSlotsLabel">Wet-test times</p>
+                  <div class="nr-slots" id="nrSlots">
+                    <button class="nr-slot" type="button"><b>Thu 4:30</b>Open</button>
+                    <button class="nr-slot" type="button"><b>Fri 11:00</b>Open</button>
+                    <button class="nr-slot held" type="button" disabled><b>Sat 1:00</b>Held</button>
+                    <button class="nr-slot" type="button"><b>Sat 3:30</b>Open</button>
+                  </div>
+                  <div class="nr-sticky">
+                    <span>Call</span>
+                    <span>Text</span>
+                    <span class="go" id="nrGo">Shop inventory</span>
+                  </div>
+                </div>
+              </div>
             </div>
-            <img class="shot" src={`${IMG}/04-online-showroom/03-aquatrainer-detail-desktop.webp`}
-              alt="AquaTrainer 14AX product detail with out-the-door price CTA" loading="lazy" />
           </div>
         </div>
+        <p class="nr-caption">Scroll it. That's the buying system — not a landing page with a form taped on.</p>
       </div>
     </section>
 
@@ -565,4 +927,90 @@ const CAMPAIGN_STATS = [
     </section>
 
   </main>
+  <script>
+    // Northridge demo interactivity. Display-only: nothing here posts anywhere.
+    const phone = document.getElementById('nrPhone');
+    const screen = document.getElementById('nrScreen');
+    const zip = document.getElementById('nrZip');
+    const btn = document.getElementById('nrPriceBtn');
+    const flash = document.getElementById('nrFlash');
+    const slots = document.getElementById('nrSlots');
+    const go = document.getElementById('nrGo');
+    const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (screen instanceof HTMLElement && phone instanceof HTMLElement) {
+      screen.addEventListener('scroll', () => {
+        phone.classList.toggle('is-scrolled', screen.scrollTop > 16);
+      }, { passive: true });
+
+      // stagger inventory cards in as they enter the phone viewport
+      const io = new IntersectionObserver((entries) => {
+        for (const e of entries) {
+          if (e.isIntersecting) {
+            e.target.classList.add('in');
+            io.unobserve(e.target);
+          }
+        }
+      }, { root: screen, threshold: 0.25 });
+      screen.querySelectorAll('.nr-reveal').forEach((el) => io.observe(el));
+    }
+
+    // ZIP check: validate → brief "checking" beat → result slides in
+    function runZipCheck() {
+      if (!(btn instanceof HTMLButtonElement) || !(flash instanceof HTMLElement)) return;
+      const wrap = zip instanceof HTMLInputElement ? zip.closest('.nr-zip') : null;
+      const z = zip instanceof HTMLInputElement ? zip.value.trim() : '';
+      if (!/^\d{5}$/.test(z)) {
+        wrap?.classList.add('err');
+        if (zip instanceof HTMLInputElement) zip.focus();
+        return;
+      }
+      wrap?.classList.remove('err');
+      const label = btn.textContent;
+      btn.classList.add('busy');
+      btn.textContent = 'Checking…';
+      flash.classList.remove('on');
+      window.setTimeout(() => {
+        btn.classList.remove('busy');
+        btn.textContent = label;
+        flash.textContent = `2 RidgeLine 14s in ZIP ${z}. Out-the-door quote texts in under a minute.`;
+        flash.classList.add('on');
+      }, reduced ? 0 : 550);
+    }
+    btn?.addEventListener('click', runZipCheck);
+    if (zip instanceof HTMLInputElement) {
+      zip.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') runZipCheck();
+      });
+      zip.addEventListener('input', () => {
+        zip.closest('.nr-zip')?.classList.remove('err');
+      });
+    }
+
+    // Book buttons scroll the phone down to the time slots
+    document.querySelectorAll('[data-book]').forEach((b) => {
+      b.addEventListener('click', () => {
+        document.getElementById('nrSlotsLabel')?.scrollIntoView({
+          behavior: reduced ? 'auto' : 'smooth', block: 'nearest',
+        });
+      });
+    });
+
+    // Slot selection updates the sticky CTA
+    if (slots instanceof HTMLElement) {
+      slots.addEventListener('click', (e) => {
+        const slot = e.target instanceof Element ? e.target.closest('.nr-slot') : null;
+        if (!(slot instanceof HTMLButtonElement) || slot.disabled) return;
+        slots.querySelectorAll('.nr-slot.sel').forEach((s) => s.classList.remove('sel'));
+        slot.classList.add('sel');
+        if (go instanceof HTMLElement) {
+          const time = slot.querySelector('b')?.textContent || '';
+          go.textContent = time ? `Confirm ${time}` : 'Shop inventory';
+          go.classList.remove('pulse');
+          void go.offsetWidth; // restart the pulse animation
+          go.classList.add('pulse');
+        }
+      });
+    }
+  </script>
 </Layout>

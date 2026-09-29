@@ -1,0 +1,45 @@
+---
+// Lane B — the ONE hidden-field block, server-rendered from the middleware's
+// attribution cookies (B2). Values are correct before any client JS runs, so
+// the no-JS form-data path carries full attribution too. The client script
+// refreshes fbp/fbc just before submit (the pixel may set them after render).
+// There is deliberately NO eventId field: the server mints the event id (B5/C2).
+import { parseAdParams, fullUrl, type Attribution } from '../lib/attribution';
+import { CONSENT_TEXT, CONSENT_VERSION } from '../data/consent';
+
+const att: Attribution = Astro.locals.attribution ?? {
+  leadUuid: '',
+  firstUrl: '',
+  firstQuery: '',
+  lastUrl: '',
+  lastQuery: '',
+  firstSeenAt: '',
+  queryTruncated: false,
+};
+const utmFirst = parseAdParams(att.firstQuery);
+const utmLast = parseAdParams(att.lastQuery);
+const utm = (k: string) => utmFirst[k] || utmLast[k] || '';
+const fbp = Astro.cookies.get('_fbp')?.value ?? '';
+const fbc = Astro.cookies.get('_fbc')?.value ?? '';
+---
+
+<input type="hidden" name="leadUuid" value={att.leadUuid} />
+<input type="hidden" name="firstUrl" value={att.firstUrl} />
+<input type="hidden" name="firstQuery" value={att.firstQuery} />
+<input type="hidden" name="lastUrl" value={att.lastUrl} />
+<input type="hidden" name="lastQuery" value={att.lastQuery} />
+<input type="hidden" name="firstSeenAt" value={att.firstSeenAt} />
+<input type="hidden" name="landingUrl" value={fullUrl(att.firstUrl, att.firstQuery)} />
+<input type="hidden" name="utmSource" value={utm('utmSource')} />
+<input type="hidden" name="utmMedium" value={utm('utmMedium')} />
+<input type="hidden" name="utmCampaign" value={utm('utmCampaign')} />
+<input type="hidden" name="utmContent" value={utm('utmContent')} />
+<input type="hidden" name="utmTerm" value={utm('utmTerm')} />
+<input type="hidden" name="fbclid" value={utm('fbclid')} />
+<input type="hidden" name="gclid" value={utm('gclid')} />
+<input type="hidden" name="fbp" value={fbp} />
+<input type="hidden" name="fbc" value={fbc} />
+<input type="hidden" name="consentGiven" value="false" />
+<input type="hidden" name="consentText" value={CONSENT_TEXT} />
+<input type="hidden" name="consentVersion" value={CONSENT_VERSION} />
+<input type="hidden" name="consentUrl" value={Astro.url.href} />

@@ -1,0 +1,24 @@
+# Local dev / smoke-test vars. Copy to .dev.vars (gitignored) for local runs.
+# scripts/run-local.sh does this automatically.
+#
+# The *_BASE / *_URL overrides exist ONLY so the local smoke test can point at
+# scripts/stub-server.mjs. NEVER set them in production — prod uses the real
+# endpoints baked into src/lib/server.ts.
+
+GHL_API_KEY=pit-local-stub-key
+GHL_LOCATION_ID=stub-location
+META_PIXEL_ID=1200252438858536
+META_CAPI_TOKEN=stub-capi-token
+GOOGLE_SHEETS_ID=stub-sheet-id
+GOOGLE_SERVICE_ACCOUNT_EMAIL=stub@local.test
+GOOGLE_SERVICE_ACCOUNT_PRIVATE_KEY=stub
+STAGE_WEBHOOK_SECRET=local-stage-secret
+ALERT_SECRET=local-alert-secret
+LEAD_VALUE_USD=0
+LEAD_CURRENCY=USD
+
+GHL_API_BASE=http://127.0.0.1:8788/ghl
+META_CAPI_BASE=http://127.0.0.1:8788/capi
+GOOGLE_TOKEN_URL=http://127.0.0.1:8788/goog/token
+SHEETS_API_BASE=http://127.0.0.1:8788/sheets
+ALERT_WEBHOOK_URL=http://127.0.0.1:8788/alert

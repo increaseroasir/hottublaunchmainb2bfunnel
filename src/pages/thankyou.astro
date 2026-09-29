@@ -1,12 +1,13 @@
 ---
 import Layout from '../layouts/Layout.astro';
+const search = Astro.url.search;
 ---
 
 <Layout
   title="You're All Set — Hot Tub Launch"
   description="Everything you requested is on its way. Check your inbox."
+  robots="noindex"
 >
-  <meta name="robots" content="noindex, nofollow" />
 
   <style is:global>
   :root{
@@ -90,7 +91,7 @@ import Layout from '../layouts/Layout.astro';
 
       <div class="cal-shell">
         <p style="color:#E4DDD3;font-size:1rem">Ready to put this into action for your store?</p>
-        <a class="btn" href="/apply">Book a strategy call →</a>
+        <a class="btn" href={"/apply" + search}>Book a strategy call →</a>
       </div>
     </div>
   </section>

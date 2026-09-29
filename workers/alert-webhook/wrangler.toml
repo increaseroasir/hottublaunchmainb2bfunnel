@@ -1,0 +1,8 @@
+name = "htl-alert-webhook"
+main = "src/index.ts"
+compatibility_date = "2025-01-01"
+
+# Secrets (set with `wrangler secret put <NAME>` from this directory):
+#   TELEGRAM_BOT_TOKEN — agency vault, 1Password
+#   TELEGRAM_CHAT_ID   — the chat/channel that receives alerts
+#   ALERT_SECRET       — optional shared secret; must match the funnel worker's ALERT_SECRET

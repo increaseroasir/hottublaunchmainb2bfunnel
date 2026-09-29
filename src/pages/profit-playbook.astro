@@ -1,12 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AttributionFields from '../components/AttributionFields.astro';
+import { CONSENT_TEXT } from '../data/consent';
 ---
 
 <Layout
   title="Free Download: The 2026 Hot Tub Store AI Profit Playbook"
   description="Free playbook for hot tub store owners — why your store is losing buyers and the system to start capturing them again."
   pageClass="profit-playbook-page"
-  robots="index, follow"
+  robots="noindex"
 >
   <style is:global>
     /* ============================================================
@@ -669,28 +671,18 @@ import Layout from '../layouts/Layout.astro';
 
         <form action="/api/lead" method="POST" novalidate>
 
-          <!-- Hidden tracking fields -->
-          <input type="hidden" name="leadUuid" id="profitLeadUuid" value="" />
-          <input type="hidden" name="eventId" id="profitEventId" value="" />
-          <input type="hidden" name="fbp" id="profitFbp" value="" />
-          <input type="hidden" name="fbc" id="profitFbc" value="" />
-          <input type="hidden" name="fbclid" id="profitFbclid" value="" />
-          <input type="hidden" name="utmSource" id="profitUtmSource" value="" />
-          <input type="hidden" name="utmMedium" id="profitUtmMedium" value="" />
-          <input type="hidden" name="utmCampaign" id="profitUtmCampaign" value="" />
-          <input type="hidden" name="utmContent" id="profitUtmContent" value="" />
-          <input type="hidden" name="utmTerm" id="profitUtmTerm" value="" />
-          <input type="hidden" name="landingUrl" id="profitLandingUrl" value="" />
+          <!-- Hidden tracking fields — server-rendered from attribution cookies (Lane B2) -->
+          <AttributionFields />
 
           <div class="pb-field">
             <label for="profitName">First Name</label>
-            <input id="profitName" name="name" type="text" required autocomplete="given-name" placeholder="Your first name" />
-            <span class="field-error" data-error-for="name"></span>
+            <input id="profitName" name="first_name" type="text" required autocomplete="given-name" placeholder="Your first name" />
+            <span class="field-error" data-error-for="first_name"></span>
           </div>
 
           <div class="pb-field">
             <label for="profitLastName">Last Name</label>
-            <input id="profitLastName" name="lastName" type="text" autocomplete="family-name" placeholder="Your last name" />
+            <input id="profitLastName" name="last_name" type="text" autocomplete="family-name" placeholder="Your last name" />
           </div>
 
           <div class="pb-field">
@@ -703,6 +695,12 @@ import Layout from '../layouts/Layout.astro';
             <label for="profitPhone">Phone Number (optional)</label>
             <input id="profitPhone" name="phone" type="tel" autocomplete="tel" placeholder="(979) 459-9221" />
           </div>
+
+          <!-- Consent — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->
+          <label style="display:flex;gap:.6rem;align-items:flex-start;cursor:pointer;font-size:.72rem;line-height:1.5;margin:.8rem 0 1rem;color:var(--muted,#6E655F)">
+            <input type="checkbox" name="terms" required style="margin-top:.2em;accent-color:#CE1126;flex:none;width:16px;height:16px" />
+            <span>{CONSENT_TEXT}</span>
+          </label>
 
           <button class="btn" type="submit" data-submit>Access the Playbook</button>
         </form>
@@ -787,133 +785,47 @@ import Layout from '../layouts/Layout.astro';
     </div>
   </footer>
 
-  <script is:inline>
-(function () {
-  const formEl = document.querySelector('.profit-playbook-page form');
-  if (!formEl) return;
+  <!-- Capture/submit plumbing lives in src/lib/lead-client.ts (Lane B shared util).
+       This block is page-specific validation only. -->
+  <script>
+    import { wireLeadForm } from '../lib/lead-client';
 
-  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    (function () {
+      const formNode = document.querySelector('.profit-playbook-page form');
+      if (!(formNode instanceof HTMLFormElement)) return;
+      const formEl = formNode;
 
-  function value(name) {
-    const input = formEl.elements.namedItem(name);
-    return input instanceof HTMLInputElement ? input.value.trim() : '';
-  }
+      const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-  function setError(name, message) {
-    const input = formEl.elements.namedItem(name);
-    const slot = formEl.querySelector('[data-error-for="' + name + '"]');
-    if (input instanceof HTMLInputElement) {
-      input.setAttribute('aria-invalid', message ? 'true' : 'false');
-    }
-    if (slot) slot.textContent = message;
-  }
+      function value(name: string): string {
+        const input = formEl.elements.namedItem(name) as { value?: string } | null;
+        return input && typeof input.value === 'string' ? input.value.trim() : '';
+      }
 
-  function validate() {
-    const name = value('name');
-    const email = value('email');
-    const next = {
-      name: name.length >= 2 ? '' : 'Please enter your first name (at least 2 characters).',
-      email: emailRe.test(email) ? '' : 'Please enter a valid email address.',
-    };
-    setError('name', next.name);
-    setError('email', next.email);
-    return !next.name && !next.email;
-  }
+      function setError(name: string, message: string) {
+        const input = formEl.elements.namedItem(name);
+        const slot = formEl.querySelector('[data-error-for="' + name + '"]');
+        if (input instanceof HTMLInputElement) {
+          input.setAttribute('aria-invalid', message ? 'true' : 'false');
+        }
+        if (slot) slot.textContent = message;
+      }
 
-  // Capture tracking params from URL and cookies
-  function captureTracking() {
-    const params = new URLSearchParams(window.location.search);
-    function get(id) {
-      const el = document.getElementById(id);
-      return el instanceof HTMLInputElement ? el : null;
-    }
+      function validate(): boolean {
+        const name = value('first_name');
+        const email = value('email');
+        const termsEl = formEl.elements.namedItem('terms');
+        const terms = termsEl instanceof HTMLInputElement ? termsEl.checked : false;
+        const next = {
+          name: name.length >= 2 ? '' : 'Please enter your first name (at least 2 characters).',
+          email: emailRe.test(email) ? '' : 'Please enter a valid email address.',
+        };
+        setError('first_name', next.name);
+        setError('email', next.email);
+        return !next.name && !next.email && terms;
+      }
 
-    // leadUuid + eventId
-    var lu = params.get('leadUuid') || sessionStorage.getItem('lead_uuid') || '';
-    var ei = params.get('eventId') || sessionStorage.getItem('event_id') || '';
-    if (!lu) {
-      lu = crypto.randomUUID
-        ? crypto.randomUUID()
-        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-      try { sessionStorage.setItem('lead_uuid', lu); } catch (e) {}
-    }
-    if (!ei) {
-      ei = crypto.randomUUID
-        ? crypto.randomUUID()
-        : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-          });
-      try { sessionStorage.setItem('event_id', ei); } catch (e) {}
-    }
-
-    var hlu = get('profitLeadUuid'); if (hlu) hlu.value = lu;
-    var hei = get('profitEventId'); if (hei) hei.value = ei;
-
-    // UTMs
-    var utmFields = ['utmSource', 'utmMedium', 'utmCampaign', 'utmContent', 'utmTerm'];
-    utmFields.forEach(function (f) {
-      var stored = null;
-      try { stored = sessionStorage.getItem(f); } catch (e) {}
-      var fromUrl = params.get(f);
-      var val = fromUrl || stored || '';
-      if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch (e) {} }
-      var h = get('profit' + f.charAt(0).toUpperCase() + f.slice(1));
-      if (h) h.value = val;
-    });
-
-    // fbclid
-    var fbclid = params.get('fbclid') || '';
-    var hfbclid = get('profitFbclid'); if (hfbclid) hfbclid.value = fbclid;
-
-    // fbp / fbc from Meta cookies
-    var fbp = '';
-    var fbc = '';
-    document.cookie.split('; ').forEach(function (c) {
-      if (c.startsWith('_fbp=')) fbp = c.slice(5);
-      if (c.startsWith('_fbc=')) fbc = c.slice(5);
-    });
-    var hfbp = get('profitFbp'); if (hfbp) hfbp.value = fbp;
-    var hfbc = get('profitFbc');
-    if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
-
-    // landing url
-    var landing = null;
-    try { landing = sessionStorage.getItem('landing_url'); } catch (e) {}
-    if (!landing) landing = window.location.href.split('?')[0];
-    try { if (!sessionStorage.getItem('landing_url')) sessionStorage.setItem('landing_url', landing); } catch (e) {}
-    var hl = get('profitLandingUrl'); if (hl) hl.value = landing;
-  }
-
-  // Run tracking capture on page load
-  captureTracking();
-
-  formEl.addEventListener('submit', function (event) {
-    if (!validate()) {
-      event.preventDefault();
-      return;
-    }
-
-    // Fire Pixel Lead event with matching event_id
-    var eidEl = document.getElementById('profitEventId');
-    var eid = eidEl instanceof HTMLInputElement ? eidEl.value : '';
-    if (typeof fbq === 'function' && eid) {
-      fbq('track', 'Lead', {}, { eventID: eid });
-    }
-
-    try {
-      sessionStorage.setItem('lead_name', value('name'));
-      sessionStorage.setItem('lead_email', value('email'));
-    } catch (err) {}
-
-    var button = formEl.querySelector('[data-submit]');
-    if (button instanceof HTMLButtonElement) {
-      button.disabled = true;
-    }
-  });
-})();
+      wireLeadForm({ form: formEl, validate });
+    })();
   </script>
 </Layout>

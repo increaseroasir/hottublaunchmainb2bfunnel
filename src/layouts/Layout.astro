@@ -7,6 +7,7 @@ import '../styles/global.css';
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <!-- Lane E1: paid landing pages pass robots="noindex"; organic pages get the default -->
     <meta name="robots" content={Astro.props.robots || "index, follow, max-image-preview:large"} />
     <meta name="description" content={Astro.props.description} />
     <title>{Astro.props.title}</title>

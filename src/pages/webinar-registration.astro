@@ -1,12 +1,14 @@
 ---
 import Layout from '../layouts/Layout.astro';
+import AttributionFields from '../components/AttributionFields.astro';
+import { CONSENT_TEXT } from '../data/consent';
 ---
 
 <Layout
   title="Free Masterclass for Hot Tub Store Owners — Hot Tub Launch"
   description="Get the 3-part AI playbook growth-minded hot tub stores use to fill their showroom with qualified buyers, move aging inventory, and stop losing sales to competitors — practical, proven steps you can start using this week."
+  robots="noindex"
 >
-  <meta name="robots" content="index, follow" />
 
   <style is:global>
   :root{
@@ -284,28 +286,18 @@ import Layout from '../layouts/Layout.astro';
       <div class="ms">Tuesday, July 7th @ 6:00 PM ET · Limited to 100</div>
 
       <form id="webinar-form" action="/api/lead" method="POST" novalidate>
-        <!-- Hidden tracking fields -->
-        <input type="hidden" name="leadUuid" id="wLeadUuid" value="" />
-        <input type="hidden" name="eventId" id="wEventId" value="" />
-        <input type="hidden" name="fbp" id="wFbp" value="" />
-        <input type="hidden" name="fbc" id="wFbc" value="" />
-        <input type="hidden" name="fbclid" id="wFbclid" value="" />
-        <input type="hidden" name="utmSource" id="wUtmSource" value="" />
-        <input type="hidden" name="utmMedium" id="wUtmMedium" value="" />
-        <input type="hidden" name="utmCampaign" id="wUtmCampaign" value="" />
-        <input type="hidden" name="utmContent" id="wUtmContent" value="" />
-        <input type="hidden" name="utmTerm" id="wUtmTerm" value="" />
-        <input type="hidden" name="landingUrl" id="wLandingUrl" value="" />
+        <!-- Hidden tracking fields — server-rendered from attribution cookies (Lane B2) -->
+        <AttributionFields />
 
         <div class="field-group">
           <label for="wName">First Name</label>
-          <input id="wName" name="name" type="text" required autocomplete="given-name" placeholder="Your first name" />
-          <span class="field-error" data-error-for="name"></span>
+          <input id="wName" name="first_name" type="text" required autocomplete="given-name" placeholder="Your first name" />
+          <span class="field-error" data-error-for="first_name"></span>
         </div>
 
         <div class="field-group">
           <label for="wLastName">Last Name</label>
-          <input id="wLastName" name="lastName" type="text" autocomplete="family-name" placeholder="Your last name" />
+          <input id="wLastName" name="last_name" type="text" autocomplete="family-name" placeholder="Your last name" />
         </div>
 
         <div class="field-group">
@@ -319,17 +311,25 @@ import Layout from '../layouts/Layout.astro';
           <input id="wPhone" name="phone" type="tel" autocomplete="tel" placeholder="(979) 459-9221" />
         </div>
 
+        <!-- Consent — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->
+        <label style="display:flex;gap:.6rem;align-items:flex-start;cursor:pointer;font-size:.72rem;line-height:1.5;margin:.8rem 0 1rem;opacity:.85">
+          <input type="checkbox" name="terms" required style="margin-top:.2em;accent-color:#CE1126;flex:none;width:16px;height:16px" />
+          <span>{CONSENT_TEXT}</span>
+        </label>
+
         <button class="form-submit" type="submit" data-submit>Register for Free</button>
       </form>
     </div>
   </div>
 
-  <script is:inline>
+  <script>
+  import { wireLeadForm } from '../lib/lead-client';
+
   (function () {
     /* ===== TARGET DATE — set your webinar date/time here (this example: July 7, 2026, 6:00 PM EDT) ===== */
     var TARGET = Date.UTC(2026, 6, 7, 22, 0, 0); // month is 0-indexed; 22:00 UTC = 6PM EDT
 
-    function pad(n){return String(n).padStart(2,'0')}
+    function pad(n: number){return String(n).padStart(2,'0')}
     function tick(){
       var diff=Math.max(0, TARGET - Date.now());
       var d=Math.floor(diff/86400000), h=Math.floor(diff/3600000)%24, m=Math.floor(diff/60000)%60, s=Math.floor(diff/1000)%60;
@@ -341,127 +341,50 @@ import Layout from '../layouts/Layout.astro';
     tick(); setInterval(tick,1000);
 
     /* register modal */
-    var overlay=document.getElementById('overlay');
-    document.querySelectorAll('.register').forEach(function(b){b.addEventListener('click',function(){overlay.classList.add('open')})});
-    document.getElementById('closeModal').addEventListener('click',function(){overlay.classList.remove('open')});
-    overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('open')});
-
-    /* ===== FORM: tracking capture, validation, fbq Lead fire ===== */
-    var formEl = document.getElementById('webinar-form');
-    if (!formEl) return;
-
-    var emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    function value(name) {
-      var input = formEl.elements.namedItem(name);
-      return input instanceof HTMLInputElement ? input.value.trim() : '';
+    const overlay = document.getElementById('overlay');
+    if (overlay) {
+      document.querySelectorAll('.register').forEach(function(b){b.addEventListener('click',function(){overlay.classList.add('open')})});
+      const closeBtn = document.getElementById('closeModal');
+      if (closeBtn) closeBtn.addEventListener('click',function(){overlay.classList.remove('open')});
+      overlay.addEventListener('click',function(e){if(e.target===overlay)overlay.classList.remove('open')});
     }
 
-    function setError(name, message) {
-      var input = formEl.elements.namedItem(name);
-      var slot = formEl.querySelector('[data-error-for="' + name + '"]');
+    /* ===== FORM — capture/submit plumbing lives in src/lib/lead-client.ts (Lane B shared util) ===== */
+    const formNode = document.getElementById('webinar-form');
+    if (!(formNode instanceof HTMLFormElement)) return;
+    const formEl = formNode;
+
+    const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    function value(name: string): string {
+      const input = formEl.elements.namedItem(name) as { value?: string } | null;
+      return input && typeof input.value === 'string' ? input.value.trim() : '';
+    }
+
+    function setError(name: string, message: string) {
+      const input = formEl.elements.namedItem(name);
+      const slot = formEl.querySelector('[data-error-for="' + name + '"]');
       if (input instanceof HTMLInputElement) {
         input.setAttribute('aria-invalid', message ? 'true' : 'false');
       }
       if (slot) slot.textContent = message;
     }
 
-    function validate() {
-      var name = value('name');
-      var email = value('email');
-      var next = {
+    function validate(): boolean {
+      const name = value('first_name');
+      const email = value('email');
+      const termsEl = formEl.elements.namedItem('terms');
+      const terms = termsEl instanceof HTMLInputElement ? termsEl.checked : false;
+      const next = {
         name: name.length >= 2 ? '' : 'Enter your first name.',
         email: emailRe.test(email) ? '' : 'Enter a valid email address.',
       };
-      setError('name', next.name);
+      setError('first_name', next.name);
       setError('email', next.email);
-      return !next.name && !next.email;
+      return !next.name && !next.email && terms;
     }
 
-    // Capture tracking params from URL and cookies
-    function captureTracking() {
-      var params = new URLSearchParams(window.location.search);
-      function get(id) {
-        var el = document.getElementById(id);
-        return el instanceof HTMLInputElement ? el : null;
-      }
-
-      // leadUuid + eventId
-      var lu = params.get('leadUuid') || (function(){ try{ return sessionStorage.getItem('lead_uuid') || ''; }catch(e){return ''} })();
-      var ei = params.get('eventId') || (function(){ try{ return sessionStorage.getItem('event_id') || ''; }catch(e){return ''} })();
-      if (!lu) {
-        lu = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-        try { sessionStorage.setItem('lead_uuid', lu); } catch(e) {}
-      }
-      if (!ei) {
-        ei = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) { var r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8); return v.toString(16); });
-        try { sessionStorage.setItem('event_id', ei); } catch(e) {}
-      }
-
-      var hlu = get('wLeadUuid'); if (hlu) hlu.value = lu;
-      var hei = get('wEventId'); if (hei) hei.value = ei;
-
-      // UTMs
-      var utmFields = ['utmSource','utmMedium','utmCampaign','utmContent','utmTerm'];
-      utmFields.forEach(function (f) {
-        var stored = null;
-        try { stored = sessionStorage.getItem(f); } catch(e) {}
-        var fromUrl = params.get(f);
-        var val = fromUrl || stored || '';
-        if (fromUrl) { try { sessionStorage.setItem(f, fromUrl); } catch(e) {} }
-        var h = get('w' + f.charAt(0).toUpperCase() + f.slice(1));
-        if (h) h.value = val;
-      });
-
-      // fbclid
-      var fbclid = params.get('fbclid') || '';
-      var hfbclid = get('wFbclid'); if (hfbclid) hfbclid.value = fbclid;
-
-      // fbp / fbc from Meta cookies
-      var fbp = '';
-      var fbc = '';
-      document.cookie.split('; ').forEach(function (c) {
-        if (c.startsWith('_fbp=')) fbp = c.slice(5);
-        if (c.startsWith('_fbc=')) fbc = c.slice(5);
-      });
-      var hfbp = get('wFbp'); if (hfbp) hfbp.value = fbp;
-      var hfbc = get('wFbc');
-      if (hfbc) hfbc.value = fbc || (fbclid ? 'fb.1.' + Math.floor(Date.now() / 1000) + '.' + fbclid : '');
-
-      // landing url
-      var landing = null;
-      try { landing = sessionStorage.getItem('landing_url'); } catch(e) {}
-      if (!landing) landing = window.location.href.split('?')[0];
-      try { if (!sessionStorage.getItem('landing_url')) sessionStorage.setItem('landing_url', landing); } catch(e) {}
-      var hl = get('wLandingUrl'); if (hl) hl.value = landing;
-    }
-
-    // Run tracking capture on page load
-    captureTracking();
-
-    formEl.addEventListener('submit', function (event) {
-      if (!validate()) {
-        event.preventDefault();
-        return;
-      }
-
-      // Fire Pixel Lead event with matching event_id
-      var eidEl = document.getElementById('wEventId');
-      var eid = eidEl instanceof HTMLInputElement ? eidEl.value : '';
-      if (typeof fbq === 'function' && eid) {
-        fbq('track', 'Lead', {}, { eventID: eid });
-      }
-
-      try {
-        sessionStorage.setItem('lead_name', value('name'));
-        sessionStorage.setItem('lead_email', value('email'));
-      } catch(err) {}
-
-      var button = formEl.querySelector('[data-submit]');
-      if (button instanceof HTMLButtonElement) {
-        button.disabled = true;
-      }
-    });
+    wireLeadForm({ form: formEl, validate });
   })();
   </script>
 </Layout>

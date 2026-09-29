@@ -1,0 +1,516 @@
+{
+  "schema_version": 1,
+  "purpose": "Recovered source and supporting files for the existing production baseline",
+  "worker": "hottublaunch-main",
+  "worker_version": "05019c5a-0f17-4f2f-8d09-97e2ac545ed5",
+  "deployment": "97f04db5-f416-457c-8fd2-7a8c68379ccf",
+  "recovery_tag": "production-baseline-2026-08-25",
+  "file_count": 101,
+  "files": [
+    {
+      "path": ".dev.vars.example",
+      "sha256": "4092ad93d68b1efa51ac808085f94b397adf0d9631206662f53bf0bd77eb3d93",
+      "bytes": 899
+    },
+    {
+      "path": ".gitignore",
+      "sha256": "3fb2f6dd44ca7f3104086e55a8992ed9aecbf0f8f3ce5978e459e2a502232299",
+      "bytes": 150
+    },
+    {
+      "path": "astro.config.mjs",
+      "sha256": "7c9adf5d02abc4077224ebe7872dd3bf47e2a1e70f4a5a818ef448710e1dc1b2",
+      "bytes": 297
+    },
+    {
+      "path": "db/migrations/0001_baseline.sql",
+      "sha256": "29419a62894b478b01b7c3ddca520f8520e5e4e1c61c66bcf50654cc81c4ba0c",
+      "bytes": 987
+    },
+    {
+      "path": "db/migrations/0002_funnel_hardening.sql",
+      "sha256": "878b5e3f0638a1ce966fc39807dc6429093995bdb8fe8dc9879b057138b23be2",
+      "bytes": 2803
+    },
+    {
+      "path": "db/schema.sql",
+      "sha256": "1a0a39a0f04ee8b9226597a5c2ea6bf7515b5a7a1e030f05f4c9ae45ccfd75df",
+      "bytes": 811
+    },
+    {
+      "path": "package-lock.json",
+      "sha256": "9c19006571bfc8ee7065d1731b6c5897754c7bf0a16edffbcd503b6e36029bec",
+      "bytes": 239951
+    },
+    {
+      "path": "package.json",
+      "sha256": "76a20c73063ec620f6556cd4f76abe5267420c16724ff286e40fbe6ac4941360",
+      "bytes": 509
+    },
+    {
+      "path": "public/apple-touch-icon.png",
+      "sha256": "784d1bcc7b3f2f1388cb54747b01c8bc0d0ae7192550b865fc7de52c6f617dad",
+      "bytes": 36021
+    },
+    {
+      "path": "public/favicon-32.png",
+      "sha256": "3ca327de930e3c0b64e09e0dac17a3770a55ad0619c5cf5948ce88c9668aabae",
+      "bytes": 2952
+    },
+    {
+      "path": "public/favicon.png",
+      "sha256": "8c60a181400cc6cce38ef312533ab41263da1bd1a198357da06de9134ede8dbf",
+      "bytes": 117766
+    },
+    {
+      "path": "public/hero-video.mp4",
+      "sha256": "1174467ab26d9cc8ea21a334ef8fe4e675ff2dba534c2962529313d730ba88ed",
+      "bytes": 3690008
+    },
+    {
+      "path": "public/images/pre-call/01-hero/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/01-hero/hero-aquatrainer-product.webp",
+      "sha256": "6a220fbac99f2eae8423645978dddd5fb49ca6d0dacfd36bc7cfc09f76a0a7d2",
+      "bytes": 78800
+    },
+    {
+      "path": "public/images/pre-call/01-hero/hero-online-showroom-desktop.webp",
+      "sha256": "f2fb36d1ae71edab4c556834c569768f934e69d7fd0eb86ff394a52876c45d6d",
+      "bytes": 55004
+    },
+    {
+      "path": "public/images/pre-call/01-hero/hero-online-showroom-mobile.webp",
+      "sha256": "aad5f405d73963e3b5089399e86b15f93d1b080c86d8b84e7de40de9aa95008c",
+      "bytes": 19986
+    },
+    {
+      "path": "public/images/pre-call/01-hero/hero-price-request.webp",
+      "sha256": "27a16f28dcfbee8b63f86c0cbb7b07200749309ddb2374f9e32b7088cb52c1a6",
+      "bytes": 18564
+    },
+    {
+      "path": "public/images/pre-call/02-welcome-video/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/02-welcome-video/precall-welcome-poster-desktop.webp",
+      "sha256": "c348ed07a03213a07cb984554319b4430808ff84a659088391ea620b40ed01bf",
+      "bytes": 45160
+    },
+    {
+      "path": "public/images/pre-call/02-welcome-video/precall-welcome-poster-mobile.webp",
+      "sha256": "9a8f859af94683ca1d2dfff469db18cc4c403b8b3144dec4ccbbb64540eb02bb",
+      "bytes": 18994
+    },
+    {
+      "path": "public/images/pre-call/03-buyer-path/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/04-online-showroom/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/04-online-showroom/01-homepage-desktop.webp",
+      "sha256": "f2fb36d1ae71edab4c556834c569768f934e69d7fd0eb86ff394a52876c45d6d",
+      "bytes": 55004
+    },
+    {
+      "path": "public/images/pre-call/04-online-showroom/02-product-card-mobile.webp",
+      "sha256": "cbabbb868bfa3e13e764270f3c3686a0afc5a36b720ec904e9da125ca687f80a",
+      "bytes": 25648
+    },
+    {
+      "path": "public/images/pre-call/04-online-showroom/03-aquatrainer-detail-desktop.webp",
+      "sha256": "6c802490741ecd3d7d8b28054ca9fd36a87c279ddf3537bab050c7bc147e4584",
+      "bytes": 87336
+    },
+    {
+      "path": "public/images/pre-call/04-online-showroom/04-price-financing-mobile.webp",
+      "sha256": "d129d29f0135b4b094ab640980844af19d1bbba57049b7469bd7b7c035e3e823",
+      "bytes": 16810
+    },
+    {
+      "path": "public/images/pre-call/05-buyer-handoff/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/05-buyer-handoff/01-inventory-inquiry.webp",
+      "sha256": "7500aa3c55e9eb69009556716c81a4dfeb47fa735f078b4e57d228ca9cb335f7",
+      "bytes": 17182
+    },
+    {
+      "path": "public/images/pre-call/05-buyer-handoff/02-price-request.webp",
+      "sha256": "27a16f28dcfbee8b63f86c0cbb7b07200749309ddb2374f9e32b7088cb52c1a6",
+      "bytes": 18564
+    },
+    {
+      "path": "public/images/pre-call/05-buyer-handoff/03-showroom-booking.webp",
+      "sha256": "8a2fe86f1f3b0a125bbbfa6c2440f5f0a08b8ddbda0257b47778f882d6faf778",
+      "bytes": 19030
+    },
+    {
+      "path": "public/images/pre-call/05-buyer-handoff/04-buyer-match.webp",
+      "sha256": "8cec72de8aab9bfd0a267bbeddf2cc2ee024f87186f090564a666b674138258a",
+      "bytes": 17504
+    },
+    {
+      "path": "public/images/pre-call/06-scoreboard/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/06-scoreboard/scoreboard-opportunities.webp",
+      "sha256": "73c7728d00a220cd07613f268543002bf57b6a72823366212cd4cb0efc17a53d",
+      "bytes": 21036
+    },
+    {
+      "path": "public/images/pre-call/06-scoreboard/scoreboard-pipeline.webp",
+      "sha256": "e009ee65b7f1e5b28a70d6f4dcd805f432f55bef5727413aa8fb2f956b1c2969",
+      "bytes": 33518
+    },
+    {
+      "path": "public/images/pre-call/07-proof-sales/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/07-proof-sales/150k-owner-proof.webp",
+      "sha256": "1156803391805ab70efc2c6809ff35bbb581f5beaac5bc4b4df56cef32dde82f",
+      "bytes": 28082
+    },
+    {
+      "path": "public/images/pre-call/07-proof-sales/150k-supporting-campaign.webp",
+      "sha256": "6ae13e4922c7bc9e16796c54c1bc0c6af4e590d414bebe9f458167eab0e7c171",
+      "bytes": 30258
+    },
+    {
+      "path": "public/images/pre-call/08-proof-campaign/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/08-proof-campaign/1m-impressions-338-leads.webp",
+      "sha256": "9464eff72168812af7aa80cc602b7c542e69eb7678fd1f4b45a92b17986b7d64",
+      "bytes": 66542
+    },
+    {
+      "path": "public/images/pre-call/08-proof-campaign/meta-268-attributed-leads.webp",
+      "sha256": "f9c2f7420610e086d5fdc3e98fa57c7e6d1d41b76af7a175c800248bf3255f81",
+      "bytes": 68714
+    },
+    {
+      "path": "public/images/pre-call/09-proof-creative/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/09-proof-creative/01-winner-23-leads-6-cpl.webp",
+      "sha256": "6da9889c45022eb2fb334847da6bd76b05b97b99ff9c7d17b2dfce7605f07d86",
+      "bytes": 35408
+    },
+    {
+      "path": "public/images/pre-call/09-proof-creative/02-winner.webp",
+      "sha256": "5233d6d2690a34cc82fa1dfcd8b35bf82a02f4415aa6a5dcc93d86d6d5f48c49",
+      "bytes": 38268
+    },
+    {
+      "path": "public/images/pre-call/09-proof-creative/03-winner.webp",
+      "sha256": "04ec4fed9cd2b769e261dddce1612d5064d5fbcb1b441c0e910facb0862776ee",
+      "bytes": 37216
+    },
+    {
+      "path": "public/images/pre-call/09-proof-creative/04-winner.webp",
+      "sha256": "6a9ca1ce79a60b82eab6e504c3bd68d800e13c71a4c62e51020aea908c969811",
+      "bytes": 36846
+    },
+    {
+      "path": "public/images/pre-call/09-proof-creative/05-winner.webp",
+      "sha256": "f8f6c8d8713741940400c2eceb0e581f123e7508213e95010e15c36670f7253f",
+      "bytes": 35742
+    },
+    {
+      "path": "public/images/pre-call/10-proof-early-efficiency/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/10-proof-early-efficiency/49-leads-11-days.webp",
+      "sha256": "9464eff72168812af7aa80cc602b7c542e69eb7678fd1f4b45a92b17986b7d64",
+      "bytes": 66542
+    },
+    {
+      "path": "public/images/pre-call/10-proof-early-efficiency/landing-page-31-88-conversion.webp",
+      "sha256": "f9c2f7420610e086d5fdc3e98fa57c7e6d1d41b76af7a175c800248bf3255f81",
+      "bytes": 68714
+    },
+    {
+      "path": "public/images/pre-call/11-proof-engagement/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/11-proof-engagement/109k-view-ad.webp",
+      "sha256": "52056506d0e5362478f00a4737147e40f61fd91165c111e5f5e51c3c83ba27c8",
+      "bytes": 37052
+    },
+    {
+      "path": "public/images/pre-call/12-proof-crm/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/12-proof-crm/crm-11-sold-records.webp",
+      "sha256": "454bd1533181a67f16a55637b94a6217fc237d12cb2bdb6b93b0689d7d2b9905",
+      "bytes": 31622
+    },
+    {
+      "path": "public/images/pre-call/12-proof-crm/crm-141909-opportunity-value.webp",
+      "sha256": "73c7728d00a220cd07613f268543002bf57b6a72823366212cd4cb0efc17a53d",
+      "bytes": 21036
+    },
+    {
+      "path": "public/images/pre-call/13-founders/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/13-founders/01-alex-manny-together.webp",
+      "sha256": "3042b79a8b21f28f1676df0fe71d108d53096f6a20d6c26c0704cadd507f99bd",
+      "bytes": 26450
+    },
+    {
+      "path": "public/images/pre-call/13-founders/02-manny-news.webp",
+      "sha256": "5233d6d2690a34cc82fa1dfcd8b35bf82a02f4415aa6a5dcc93d86d6d5f48c49",
+      "bytes": 38268
+    },
+    {
+      "path": "public/images/pre-call/13-founders/03-manny-trailer.webp",
+      "sha256": "b0a7445d801b27063776a732046cd38193f281650e77358a1aa6c6a86eb97023",
+      "bytes": 97012
+    },
+    {
+      "path": "public/images/pre-call/13-founders/04-alex-studio.webp",
+      "sha256": "8b43514882e9c664b52749f511999a3ac80fe27c2fa2248af047b68ee22679e5",
+      "bytes": 37698
+    },
+    {
+      "path": "public/images/pre-call/13-founders/05-alex-tradeshow.webp",
+      "sha256": "6da9889c45022eb2fb334847da6bd76b05b97b99ff9c7d17b2dfce7605f07d86",
+      "bytes": 35408
+    },
+    {
+      "path": "public/images/pre-call/14-final-appointment/.gitkeep",
+      "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+      "bytes": 0
+    },
+    {
+      "path": "public/images/pre-call/ASSETS.md",
+      "sha256": "b16dfe0da8943445aa4714bf879bc070565bf62e0249d722baba40da135fab38",
+      "bytes": 3426
+    },
+    {
+      "path": "public/logo.png",
+      "sha256": "a5d5b5fbe29b641f18d31a2b51fdfa3db6da77676d0d76fab1a65bc077d22447",
+      "bytes": 174362
+    },
+    {
+      "path": "public/logo@2x.png",
+      "sha256": "a5d5b5fbe29b641f18d31a2b51fdfa3db6da77676d0d76fab1a65bc077d22447",
+      "bytes": 174362
+    },
+    {
+      "path": "public/og-preview.jpg",
+      "sha256": "ddb1e83e9755fd257419498a3b7fea2b1cf3256f58e2796106747357f38707ff",
+      "bytes": 39467
+    },
+    {
+      "path": "public/robots.txt",
+      "sha256": "1e8dae9a10ea9601446fa880da88fb7709d97814886375fbf3c339ce7364b10c",
+      "bytes": 737
+    },
+    {
+      "path": "public/sitemap.xml",
+      "sha256": "38da151fdfed0436347a8440e0463893452e7546a077f3f7204159a0f1bce670",
+      "bytes": 579
+    },
+    {
+      "path": "public/tcia-logo.png",
+      "sha256": "4b13588cf7d36687f49d81ce315fea64a64cf937ca2767b685ea0736ee27fec0",
+      "bytes": 3184
+    },
+    {
+      "path": "scripts/run-local.sh",
+      "sha256": "19b41d6026c676bba4592d41e5f042092f263a0b1fb5bd30c86b6ab56fe0023f",
+      "bytes": 1499
+    },
+    {
+      "path": "scripts/smoke.mjs",
+      "sha256": "e7721b39469b337001968f546e9af09e4134aaa80d13ea3afcdc98c122663c0c",
+      "bytes": 19943
+    },
+    {
+      "path": "scripts/stub-server.mjs",
+      "sha256": "96aaa55820c4eec6e4fcfa25184bd4eca82bba4f23814b34f4a0fdd6de716871",
+      "bytes": 4295
+    },
+    {
+      "path": "src/components/AttributionFields.astro",
+      "sha256": "8dda657f5969749639ffc21a5752aedb80f821833ea0a3b3e7859f4f9b0b8577",
+      "bytes": 2256
+    },
+    {
+      "path": "src/components/LeadForm.astro",
+      "sha256": "01918af96ae5bcbe0a57336e623d00725906e35814ac5309f0392bd536dc6b25",
+      "bytes": 4339
+    },
+    {
+      "path": "src/data/consent.ts",
+      "sha256": "b0cb342c0b81259179be3df2ae79abbbdb60386ddc6e9a48c42b24c290770a12",
+      "bytes": 539
+    },
+    {
+      "path": "src/data/funnel.ts",
+      "sha256": "0e4ab7bb85145ebbf3b13aafde114ec7c168b7d17c94e0a91390e54698d36a30",
+      "bytes": 1174
+    },
+    {
+      "path": "src/env.d.ts",
+      "sha256": "2f88100dee66191f14d37b69cc4e9b3a565e423ab2fec147a6a694e38822cbc9",
+      "bytes": 217
+    },
+    {
+      "path": "src/layouts/Layout.astro",
+      "sha256": "9bbfa64fbaab01651859996e0bd10cce56eef3d7c836ed91e255e9f37bc80f77",
+      "bytes": 2543
+    },
+    {
+      "path": "src/lib/attribution.ts",
+      "sha256": "655f7264eb441cb4d10cb524020d9b6796bedacfaed56d87f055232650359326",
+      "bytes": 9567
+    },
+    {
+      "path": "src/lib/lead-client.ts",
+      "sha256": "3dec87384d9d1d12a74cf806bf8b0398c5bab78735edfe06d44b92965fe6fda4",
+      "bytes": 6894
+    },
+    {
+      "path": "src/lib/server.ts",
+      "sha256": "96fc0b64c6cdd69ac093e64dfb5198678af0cdf2a331e2ec7895dd86405307fc",
+      "bytes": 6211
+    },
+    {
+      "path": "src/middleware.ts",
+      "sha256": "86e81273f3e2e476a8a1139acc520bfb5d9a25db9ddd365d290b8c4db51855a2",
+      "bytes": 2198
+    },
+    {
+      "path": "src/pages/api/lead-stage.ts",
+      "sha256": "0219f2b261956ab8b4b5efd9c891a4e8a600d4a4ba3dec5f7e97cfd31305332f",
+      "bytes": 9371
+    },
+    {
+      "path": "src/pages/api/lead.ts",
+      "sha256": "abe3fabad0edd588b3c318a428bc0ca9c484f230cb4a413e263fb32d9b50bc25",
+      "bytes": 24488
+    },
+    {
+      "path": "src/pages/apply.astro",
+      "sha256": "ab56c383544c5ec0ede554e509da586cc31f803073e1ea946feba57f1c998ed0",
+      "bytes": 22616
+    },
+    {
+      "path": "src/pages/case-study.astro",
+      "sha256": "d1c5bcba5b10759ada196ced941e032afd14b61c1fdcd34ea2c158ea7fe64085",
+      "bytes": 20003
+    },
+    {
+      "path": "src/pages/check-territory.astro",
+      "sha256": "09c4985895f01e043514ac293d76aa29e5521a729901f92a019f9f2f9b33d7d9",
+      "bytes": 15805
+    },
+    {
+      "path": "src/pages/confirmed.astro",
+      "sha256": "b32fff305334e8ea9a32298a1f29bfde2acc9ecf950917a5084e6e1d0a32ecaa",
+      "bytes": 918
+    },
+    {
+      "path": "src/pages/homepage-ai.astro",
+      "sha256": "1cdacec1038b14a8e5b43f41b03042190e56a7af107f585f605ac2633fe22eb2",
+      "bytes": 257393
+    },
+    {
+      "path": "src/pages/homepage-draft.astro",
+      "sha256": "49bebad5fad321b58308408d03019998d32789d82231cc1ae410fe83b29f5cac",
+      "bytes": 97891
+    },
+    {
+      "path": "src/pages/index.astro",
+      "sha256": "f485d49bc1d14be4377d69d38471593ecf96ff2e75b309b1e9a42ed615b111ec",
+      "bytes": 63835
+    },
+    {
+      "path": "src/pages/paradise.astro",
+      "sha256": "d62ebad3b7748d289048b0ced073afc8b126564dd56a26efb1139dae15433769",
+      "bytes": 30904
+    },
+    {
+      "path": "src/pages/pre-call.astro",
+      "sha256": "ddb5bbf42238e99a42a5ef4276a7bd8dfe961b51a502a79ea8cc018b1cfe1435",
+      "bytes": 49235
+    },
+    {
+      "path": "src/pages/privacy.astro",
+      "sha256": "d8a1eeddaa3460d555c4e79df50c05dff20a7b1279520a2390ffe739a68c1d50",
+      "bytes": 11481
+    },
+    {
+      "path": "src/pages/profit-playbook.astro",
+      "sha256": "870b911b5de6351c99e13a21828cbb3b972049fd01813587039663593f8b1840",
+      "bytes": 28696
+    },
+    {
+      "path": "src/pages/thankyou.astro",
+      "sha256": "c05c05fe2ba4f08eef98a590a87ed05826684fdf9457d310dbf5988bc37f9669",
+      "bytes": 6348
+    },
+    {
+      "path": "src/pages/webinar-registration.astro",
+      "sha256": "81bb3e49686bd681e4138381c2328d58cd6cd81829f73ba136720f59d7b5e2cd",
+      "bytes": 26359
+    },
+    {
+      "path": "src/styles/global.css",
+      "sha256": "eef48e57008a3d326daba640496006a4f4dacc2ea0674c76f72530494f43ac52",
+      "bytes": 3480
+    },
+    {
+      "path": "tsconfig.json",
+      "sha256": "fd63502dc603e346a56dda6828b9d5d233e779eef6e7b5ca3393b54290c681c2",
+      "bytes": 378
+    },
+    {
+      "path": "workers/alert-webhook/src/index.ts",
+      "sha256": "e940592368bed141ecd9961516ed7e45841faed64913da6bf485475dd9a8fabf",
+      "bytes": 2955
+    },
+    {
+      "path": "workers/alert-webhook/wrangler.toml",
+      "sha256": "d02f435dc3cab7fe0884af4968389c94e7c1b3860856fbdffacdfca2c3e2b981",
+      "bytes": 366
+    },
+    {
+      "path": "wrangler.toml",
+      "sha256": "6e0db595c21149f57437653acfa00c1c1b6c70e8dd29164e1de11247b3bb8a2f",
+      "bytes": 300
+    }
+  ]
+}

@@ -398,6 +398,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   //       C11: tag; suppression never skips this — C5) -----
   let ghlContactId = '';
   let ghlStatus = 'skipped:no-key';
+  let ghlCaptured = false;
   if (ghlApiKey && ghlLocationId) {
     try {
       const customFields: Dict[] = [];
@@ -430,8 +431,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         companyName: businessName || undefined,
         state: state || undefined,
         source: 'Hot Tub Launch B2B Website',
-        // C11: a lead with no consent record must never enter an automated sequence
-        tags,
+        // Tags are added only after verifying contact identity; upsert replaces them.
       };
       if (customFields.length) ghlPayload.customFields = customFields;
 
@@ -456,7 +456,31 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         try { ghlData = JSON.parse(ghlText) as Dict; } catch {}
         ghlContactId = (ghlData?.contact as Dict | undefined)?.id || '';
         if (ghlContactId) {
-          ghlStatus = 'ok';
+          const contactUrl = `${ghlBase()}/contacts/${encodeURIComponent(ghlContactId)}`;
+          const headers = { Authorization: `Bearer ${ghlApiKey}`, Version: '2021-07-28', 'Content-Type': 'application/json' };
+          let contact = ghlData?.contact as Dict;
+          if (!asString(contact?.phone)) {
+            const verifyRes = await fetch(contactUrl, { headers, signal: AbortSignal.timeout(10000) });
+            if (!verifyRes.ok) throw new Error(`GHL contact verification failed:${verifyRes.status}`);
+            contact = ((await verifyRes.json()) as Dict)?.contact;
+          }
+          if (validPhoneE164(asString(contact?.phone)) !== phone) {
+            ghlStatus = 'failed:phone-mismatch';
+            await fireAlert({ alert: 'GHL_PHONE_MISMATCH', lead_uuid: leadUuid, contact_id: ghlContactId });
+          } else {
+            ghlCaptured = true;
+            try {
+              const tagsRes = await fetch(`${contactUrl}/tags`, {
+                method: 'POST', headers, body: JSON.stringify({ tags }), signal: AbortSignal.timeout(10000),
+              });
+              if (!tagsRes.ok) throw new Error(`HTTP ${tagsRes.status}`);
+              ghlStatus = 'ok';
+            } catch (e) {
+              ghlStatus = 'failed:tag-sync';
+              await fireAlert({ alert: 'GHL_TAG_SYNC_FAILED', lead_uuid: leadUuid, contact_id: ghlContactId,
+                error: (e as Error)?.message?.slice(0, 200) || 'unknown' });
+            }
+          }
         } else {
           ghlStatus = 'failed:no-contact-id';
           console.error('GHL upsert: no contact.id in response. Status:', ghlRes.status, 'Body:', ghlText.slice(0, 500));
@@ -574,7 +598,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   }
 
   // ----- 6. Respond (C1) -----
-  const ok = d1Ok || ghlStatus === 'ok' || sheetStatus.startsWith('ok');
+  const ok = d1Ok || ghlCaptured || sheetStatus.startsWith('ok');
   if (!ok) {
     await fireAlert({ alert: 'LEAD_STORED_NOWHERE', lead_uuid: leadUuid, d1: d1Status, ghl: ghlStatus, sheet: sheetStatus });
   }

@@ -17,7 +17,7 @@ const PORT = Number(process.argv[2] || 8788);
 
 let state;
 function reset() {
-  state = { capi: [], ghl: [], alerts: [], sheetRows: [['created_at', 'lead_uuid']], sheetWrites: [], tokenCalls: 0, fail: {} };
+  state = { capi: [], ghl: [], contacts: {}, tagWrites: [], alerts: [], sheetRows: [['created_at', 'lead_uuid']], sheetWrites: [], tokenCalls: 0, fail: {} };
 }
 reset();
 
@@ -64,7 +64,23 @@ const server = http.createServer(async (req, res) => {
       return send(res, Number(state.fail.ghl) || 401, { message: 'Invalid JWT' });
     }
     state.ghl.push({ auth: req.headers.authorization || '', body });
-    return send(res, 200, { contact: { id: 'stub-ghl-' + state.ghl.length } });
+    const contact = { id: 'stub-ghl-' + state.ghl.length, phone: state.fail.phoneMismatch ? '+12025550199' : body.phone,
+      tags: body.tags || ['m-replied', 'x-stop-drip', 'consent-captured', 'existing-business'] };
+    state.contacts[contact.id] = contact;
+    return send(res, 200, { contact: state.fail.omitPhone ? { id: contact.id } : contact });
+  }
+
+  const contactMatch = path.match(/^\/ghl\/contacts\/([^/]+)(\/tags)?$/);
+  if (contactMatch) {
+    const contact = state.contacts[contactMatch[1]];
+    if (!contact) return send(res, 404, {});
+    if (req.method === 'GET') return send(res, 200, { contact });
+    if (req.method === 'POST' && contactMatch[2]) {
+      state.tagWrites.push({contactId: contact.id, body});
+      if (state.fail.tags) return send(res, Number(state.fail.tags), {});
+      contact.tags = [...new Set([...contact.tags, ...body.tags])];
+      return send(res, 201, {tags: contact.tags});
+    }
   }
 
   // --- Google OAuth token ---

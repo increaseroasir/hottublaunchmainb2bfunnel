@@ -432,7 +432,7 @@ async function main() {
       crm?.companyName === 'Smoke Spa Co' && crm.state === 'MI' &&
       fields['yeioLAoCT7jHzCYWYEkF'] === 'yes' && fields['gPNN7vcRqDYq6jGSwfdM'] === '5-10' &&
       fields['7U1vCjmta2NKYw45k0kJ'] === lead1.leadUuid &&
-      ['source-testsrc', 'medium-cpc', 'campaign-c1', 'funnel-check-territory'].every(t => crm.tags.includes(t)));
+      !('tags' in crm) && ['source-testsrc', 'medium-cpc', 'campaign-c1', 'funnel-check-territory'].every(t => st.tagWrites[0]?.body.tags.includes(t)));
     const mk = (n, id) => ({ first_name: 'Concurrent', email: `parallel-${ts}-${n}@example.com`,
       phone: `20255501${String(50+n).padStart(2,'0')}`, businessName: '=SUM(1,2)', leadUuid: id });
     const ids = Array.from({length: 8}, () => crypto.randomUUID());
@@ -462,6 +462,27 @@ async function main() {
       failed.data?.ok && retry.data?.ok &&
       (await stub('/__state')).sheetRows.filter(r => r?.[1] === failId).length === 1 &&
       (await stub('/__state')).alerts.some(a => a.body.alert === 'SHEET_UPSERT_FAILED' && a.body.lead_uuid === failId));
+    await stub('/__fail', {omitPhone:true});
+    const verified = await postLead(mk(13,crypto.randomUUID()),null);
+    let crmState = await stub('/__state');
+    const contactId = d1(`SELECT ghl_contact_id FROM leads WHERE lead_uuid='${verified.data.leadUuid}'`)[0].ghl_contact_id;
+    gate('G17 additive tag sync retains stop/reply/consent/business tags after contact GET verification',
+      verified.data.ok && ['m-replied','x-stop-drip','consent-captured','existing-business','htl-b2b-website'].every(t=>crmState.contacts[contactId]?.tags.includes(t)) &&
+      !crmState.ghl.at(-1).body.tags);
+    await stub('/__fail', {phoneMismatch:true});
+    const tagCount = crmState.tagWrites.length;
+    const mismatch = await postLead(mk(14,crypto.randomUUID()),null);
+    crmState = await stub('/__state');
+    const mismatchRow = d1(`SELECT ghl_status, phone FROM leads WHERE lead_uuid='${mismatch.data.leadUuid}'`)[0];
+    gate('G18 CRM phone mismatch retains callable D1 lead, alerts, never adds intake tags',
+      mismatch.data.ok && mismatchRow.ghl_status === 'failed:phone-mismatch' && mismatchRow.phone === '+12025550164' &&
+      crmState.tagWrites.length === tagCount && crmState.alerts.some(a=>a.body.alert==='GHL_PHONE_MISMATCH' && a.body.lead_uuid===mismatch.data.leadUuid));
+    await stub('/__fail', {tags:503});
+    const tagFailure = await postLead(mk(15,crypto.randomUUID()),null);
+    const tagStatus = d1(`SELECT ghl_status FROM leads WHERE lead_uuid='${tagFailure.data.leadUuid}'`)[0];
+    gate('G19 failed tag sync is recorded and alerted without losing capture',tagFailure.data.ok && tagStatus.ghl_status === 'failed:tag-sync' &&
+      (await stub('/__state')).alerts.some(a=>a.body.alert==='GHL_TAG_SYNC_FAILED' && a.body.lead_uuid===tagFailure.data.leadUuid));
+    await stub('/__fail', {});
     d1("CREATE TRIGGER fail_final_status BEFORE UPDATE OF sheet_status ON leads BEGIN SELECT RAISE(FAIL, 'local final status failure'); END");
     const statusFail = await postLead(mk(11,crypto.randomUUID()),null);
     d1('DROP TRIGGER fail_final_status');

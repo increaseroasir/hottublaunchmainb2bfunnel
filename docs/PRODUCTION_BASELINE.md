@@ -2,7 +2,9 @@
 
 ## Current release — September 29, 2026
 
-The live website now runs the phone/backend repair from source `7db66ae7e888593ceece9b8fdbce81e72c6fe257`, merged into main through [PR #1](https://github.com/increaseroasir/hottublaunchmainb2bfunnel/pull/1) at `272365985d0ba63e1e8bae66c17a1634821d7070`. The merge tree exactly matches the deployed source. Later documentation-only commits do not require rebuilding the application.
+The live website now runs source `1ead541ad0d364a8cfd293c81901599d3d42f90b`: the phone/backend repair from `7db66ae7e888593ceece9b8fdbce81e72c6fe257` plus removal of one misleading sentence from `/confirmed`. Worker version `91d8289e-2a4b-49b3-842f-bf44587301b7` serves 100% as of September 29, 2026 at 03:46:30 EDT, annotated with the source commit. A clean committed archive excluded untracked duplicate files; source check/build passed (0 errors, 0 warnings, 3 existing hints). Public HTTP readback confirmed the removed sentence and preserved heading/body. Desktop/mobile screenshot follow-through is assigned to the release owner. Prior Worker `89485b18-07c3-46c8-b842-6f78b0f567d4` remains the immediate recovery point; no data rollback is needed. Private receipt: canonical company `records/live-lead-acceptance-2026-09-29/confirmation-copy-fix.md`.
+
+The phone/backend repair was merged through [PR #1](https://github.com/increaseroasir/hottublaunchmainb2bfunnel/pull/1) at `272365985d0ba63e1e8bae66c17a1634821d7070`. Documentation-only commits do not require rebuilding the application.
 
 - Worker: `hottublaunch-main`, both public hostnames.
 - Version: `89485b18-07c3-46c8-b842-6f78b0f567d4`, 100% traffic.

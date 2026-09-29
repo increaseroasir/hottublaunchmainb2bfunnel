@@ -175,7 +175,7 @@ async function main() {
     const state = await stub('/__state');
     gate('G1b invalid JSON/form phone → 400, zero D1 inserts or service calls',
       allRejected && formRes.status === 400 && before === after &&
-      state.ghl.length === 0 && state.capi.length === 0 && state.sheetRows.length === 0 &&
+      state.ghl.length === 0 && state.capi.length === 0 && state.sheetRows.length === 1 &&
       state.tokenCalls === 0 && state.alerts.length === 0);
   }
 
@@ -240,7 +240,7 @@ async function main() {
       const st = await stub('/__state');
       gate('G2b formatted phone → same E.164 in D1, GHL, Sheet',
         d1Ok === true && st.ghl[0]?.body?.phone === '+12025550142' &&
-        st.sheetRows[0]?.[6] === '+12025550142');
+        st.sheetRows[1]?.[6] === '+12025550142');
     }
   }
 
@@ -293,7 +293,7 @@ async function main() {
     const r2 = await postLead(mk(jB), jB);
     const s2 = d1(`SELECT conversion_status FROM leads WHERE lead_uuid='${r2.data?.leadUuid}'`)[0] || {};
     const ok = r1.data?.duplicate === false && s1.conversion_status === 'failed' && alerts1 >= 1 &&
-      r2.data?.duplicate === false && s2.conversion_status === 'ok';
+      r2.data?.duplicate === false && s2.conversion_status === 'ok' && r1.data?.eventId === r2.data?.eventId;
     gate('G4b failed conversion → alert fired + retry allowed, retry converts (C4/C6)', ok,
       `first=${s1.conversion_status}/${s1.capi_status} alerts=${alerts1} retryDup=${r2.data?.duplicate} retry=${s2.conversion_status}`);
   }
@@ -422,6 +422,58 @@ async function main() {
       res.status === 200 && row?.phone === '+442079460958' &&
       st.ghl.at(-1)?.body?.phone === '+442079460958' &&
       st.sheetRows.at(-1)?.[6] === '+442079460958');
+  }
+
+  if (MODE !== 'live' && stubAvailable) {
+    const st = await stub('/__state');
+    const crm = st.ghl.find(g => g.body.email === EMAIL)?.body;
+    const fields = Object.fromEntries((crm?.customFields || []).map(f => [f.id, f.value]));
+    gate('G10 CRM mapped fields and attribution tags by value',
+      crm?.companyName === 'Smoke Spa Co' && crm.state === 'MI' &&
+      fields['yeioLAoCT7jHzCYWYEkF'] === 'yes' && fields['gPNN7vcRqDYq6jGSwfdM'] === '5-10' &&
+      fields['7U1vCjmta2NKYw45k0kJ'] === lead1.leadUuid &&
+      ['source-testsrc', 'medium-cpc', 'campaign-c1', 'funnel-check-territory'].every(t => crm.tags.includes(t)));
+    const mk = (n, id) => ({ first_name: 'Concurrent', email: `parallel-${ts}-${n}@example.com`,
+      phone: `20255501${String(50+n).padStart(2,'0')}`, businessName: '=SUM(1,2)', leadUuid: id });
+    const ids = Array.from({length: 8}, () => crypto.randomUUID());
+    const responses = await Promise.all(ids.map((id,n) => postLead(mk(n,id), null)));
+    const same = crypto.randomUUID();
+    await Promise.all(Array.from({length: 5}, () => postLead(mk(9,same), null)));
+    const rows = (await stub('/__state')).sheetRows;
+    const wanted = [...ids,same];
+    const writes = (await stub('/__state')).sheetWrites;
+    gate('G11 concurrent distinct/same UUIDs use unique explicit RAW rows, 31 columns',
+      responses.every(r => r.data?.ok) && wanted.every(id => rows.filter(r => r?.[1] === id).length === 1) &&
+      writes.every(w => w.valueInputOption === 'RAW' && w.row.length === 31) &&
+      rows.filter(r => wanted.includes(r?.[1])).every(r => r[7] === '=SUM(1,2)'));
+    const preserved = await postLead(mk(0,ids[0]), null);
+    gate('G12 successful repeat preserves event identity', preserved.data?.duplicate === true && preserved.data.eventId === responses[0].data.eventId);
+    const oldId = crypto.randomUUID();
+    const cutoff = new Date(Date.now() - 25*3600000).toISOString();
+    d1(`INSERT INTO leads (lead_uuid,event_id,name,email,phone,conversion_status,created_at,updated_at) VALUES ('${oldId}','old-event','Old','old-${ts}@example.com','+12025550179','ok','${cutoff}','${cutoff}')`);
+    const aged = await postLead({first_name:'Aged', email:`old-${ts}@example.com`,phone:'2025550179'},null);
+    gate('G13 ISO timestamp older than 24h is not suppressed', aged.data?.duplicate === false && aged.data?.eventId !== 'old-event');
+    await stub('/__fail', { sheet: 503, alert: 503 });
+    const failId = crypto.randomUUID();
+    const failed = await postLead(mk(10,failId),null);
+    await stub('/__fail', {});
+    const retry = await postLead(mk(10,failId),null);
+    gate('G14 Sheet outage/alert rejection preserves D1 capture; retry recovers one row',
+      failed.data?.ok && retry.data?.ok &&
+      (await stub('/__state')).sheetRows.filter(r => r?.[1] === failId).length === 1 &&
+      (await stub('/__state')).alerts.some(a => a.body.alert === 'SHEET_UPSERT_FAILED' && a.body.lead_uuid === failId));
+    d1("CREATE TRIGGER fail_final_status BEFORE UPDATE OF sheet_status ON leads BEGIN SELECT RAISE(FAIL, 'local final status failure'); END");
+    const statusFail = await postLead(mk(11,crypto.randomUUID()),null);
+    d1('DROP TRIGGER fail_final_status');
+    gate('G15 final D1 status failure alerts while preserving capture', statusFail.data?.ok &&
+      (await stub('/__state')).alerts.some(a => a.body.alert === 'D1_STATUS_WRITE_FAILED' && a.body.lead_uuid === statusFail.data.leadUuid));
+    d1("CREATE TRIGGER fail_capture BEFORE INSERT ON leads BEGIN SELECT RAISE(FAIL, 'local capture failure'); END");
+    d1("CREATE TRIGGER fail_reservation BEFORE INSERT ON sheet_row_reservations BEGIN SELECT RAISE(FAIL, 'local reservation failure'); END");
+    await stub('/__fail', {ghl:503});
+    const native = await rfetch(BASE + '/api/lead', {method:'POST',redirect:'manual',headers:{'Content-Type':'application/x-www-form-urlencoded',Origin:BASE},body:new URLSearchParams(mk(12,crypto.randomUUID()))});
+    d1('DROP TRIGGER fail_capture'); d1('DROP TRIGGER fail_reservation');
+    await stub('/__fail', {});
+    gate('G16 native stored-nowhere fails honestly without success redirect',native.status === 503 && !native.headers.get('location'));
   }
 
   console.log('');

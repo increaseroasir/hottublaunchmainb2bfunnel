@@ -21,6 +21,9 @@ declare global {
   // Meta pixel
   // eslint-disable-next-line no-var
   var fbq: ((...args: unknown[]) => void) | undefined;
+  // Google tag queue remains callable while gtag.js is loading.
+  // eslint-disable-next-line no-var
+  var gtag: ((...args: unknown[]) => void) | undefined;
 }
 
 type WireOptions = {
@@ -89,11 +92,11 @@ function collectPayload(form: HTMLFormElement): Record<string, string> {
   return payload;
 }
 
-/** B7: hashed Advanced Matching init, identical normalization to the server. */
+/** Browser conversions share the server event ID, independently per platform. */
 async function fireBrowserLead(form: HTMLFormElement, eventId: string, phone: string): Promise<void> {
-  if (typeof fbq !== 'function' || !eventId) return;
+  if (!eventId) return;
   const leadUuid = fieldValue(form, 'leadUuid');
-  try {
+  if (typeof fbq === 'function') try {
     const [em, ph, fn, ln, extId] = await Promise.all([
       sha256hex(
         (fieldValue(form, 'email')).toLowerCase()
@@ -113,9 +116,24 @@ async function fireBrowserLead(form: HTMLFormElement, eventId: string, phone: st
   } catch {
     // hashing failure never blocks the event itself
   }
-  fbq('track', 'Lead', {}, { eventID: eventId });
+  try {
+    if (typeof fbq === 'function') fbq('track', 'Lead', {}, { eventID: eventId });
+  } catch { /* A blocked Meta tag must not prevent Google or navigation. */ }
+  if (typeof gtag === 'function') {
+    try {
+      gtag('set', 'user_data', {
+        email: fieldValue(form, 'email').toLowerCase(),
+        phone_number: phone,
+      });
+      gtag('event', 'generate_lead', { transaction_id: eventId });
+    } catch {
+      // A blocked Google tag must not interrupt the Meta event or navigation.
+    }
+  }
   // Give the beacon a moment to leave before navigation kills it.
-  await new Promise((r) => setTimeout(r, 300));
+  if (typeof fbq === 'function' || typeof gtag === 'function') {
+    await new Promise((r) => setTimeout(r, 300));
+  }
 }
 
 export function wireLeadForm(opts: WireOptions): void {

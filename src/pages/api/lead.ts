@@ -2,9 +2,9 @@
 //
 // Contract (C1): accepts JSON or form-data. JSON requests ALWAYS get a JSON
 // response with all five keys: { ok, leadUuid, eventId, duplicate, redirect }.
-// Form-data keeps the 303 → /confirmed no-JS fallback.
+// Form-data redirects only after capture; stored-nowhere returns a visible 503.
 //
-// Order of operations (checklist §4): D1 first — the lead is never lost —
+// Order of operations (checklist §4): attempt D1 first, then alternate capture
 // then CRM / CAPI / sheet. A CRM or sheet failure can never fail the lead.
 // Every failure lands in a status column AND fires the alert webhook (C6).
 
@@ -104,11 +104,11 @@ async function getGoogleAccessToken(clientEmail: string, privateKeyPem: string):
 }
 
 /**
- * Upsert one row keyed by lead_uuid in column B (C7). One lead, one row,
- * forever — updates in place, appends only when absent.
- * Returns 'ok:updated' | 'ok:appended' | 'failed:<detail>'.
+ * Upsert one row keyed by lead_uuid in column B (C7). D1 reserves a distinct
+ * row before every first write, so concurrent requests never race on :append.
  */
-async function upsertSheetRow(accessToken: string, sheetId: string, leadUuid: string, row: unknown[]): Promise<string> {
+async function upsertSheetRow(DB: D1Database | undefined, accessToken: string, sheetId: string, leadUuid: string, row: unknown[]): Promise<string> {
+  if (!DB) return 'failed:no-d1-reservation';
   const base = sheetsBase();
   const encTab = encodeURIComponent(`'${SHEET_TAB}'`);
   try {
@@ -123,40 +123,50 @@ async function upsertSheetRow(accessToken: string, sheetId: string, leadUuid: st
     }
     const existing = (await getRes.json()) as Dict;
     const vals = (existing?.values || []) as string[][];
-    let rowNumber = 0; // 1-based sheet row
+    let existingRow = 0; // 1-based sheet row
     for (let i = 0; i < vals.length; i++) {
       if (vals[i]?.[0] === leadUuid) {
-        rowNumber = i + 1;
+        existingRow = i + 1;
         break;
       }
     }
-    if (rowNumber > 0) {
-      const range = `${encTab}!A${rowNumber}`;
-      const updRes = await fetch(`${base}/spreadsheets/${sheetId}/values/${range}?valueInputOption=USER_ENTERED`, {
-        method: 'PUT',
-        headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ values: [row] }),
-        signal: AbortSignal.timeout(10000),
-      });
-      if (!updRes.ok) {
-        const t = await updRes.text();
-        console.error('Sheet update FAILED:', updRes.status, t.slice(0, 300));
-        return `failed:update:${updRes.status}`;
+    let rowNumber = 0;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      if (existingRow) {
+        await DB.prepare(
+          'INSERT OR IGNORE INTO sheet_row_reservations (sheet_id, lead_uuid, row_number) VALUES (?, ?, ?)'
+        ).bind(sheetId, leadUuid, existingRow).run();
+      } else {
+        // INSERT...SELECT is one SQLite write statement. A unique row constraint
+        // plus bounded retry handles a concurrent request seeing the same high-water.
+        await DB.prepare(
+          `INSERT OR IGNORE INTO sheet_row_reservations (sheet_id, lead_uuid, row_number)
+           SELECT ?, ?, MAX(2, ?, COALESCE((SELECT MAX(row_number) + 1
+             FROM sheet_row_reservations WHERE sheet_id = ?), 2))`
+        ).bind(sheetId, leadUuid, vals.length + 1, sheetId).run();
       }
-      return 'ok:updated';
+      const reserved = await DB.prepare(
+        'SELECT row_number FROM sheet_row_reservations WHERE sheet_id = ? AND lead_uuid = ?'
+      ).bind(sheetId, leadUuid).first<{ row_number: number }>();
+      if (reserved?.row_number) { rowNumber = reserved.row_number; break; }
+      if (existingRow) break; // its occupied row belongs to another reservation
     }
-    const appRes = await fetch(`${base}/spreadsheets/${sheetId}/values/${encTab}:append?valueInputOption=USER_ENTERED&insertDataOption=INSERT_ROWS`, {
-      method: 'POST',
+    if (!rowNumber || (existingRow && rowNumber !== existingRow)) return 'failed:reservation-conflict';
+    const occupant = vals[rowNumber - 1]?.[0];
+    if (occupant && occupant !== leadUuid) return 'failed:occupied-row';
+    const range = `${encTab}!A${rowNumber}:AE${rowNumber}`;
+    const putRes = await fetch(`${base}/spreadsheets/${sheetId}/values/${range}?valueInputOption=RAW`, {
+      method: 'PUT',
       headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({ values: [row] }),
       signal: AbortSignal.timeout(10000),
     });
-    if (!appRes.ok) {
-      const t = await appRes.text();
-      console.error('Sheet append FAILED:', appRes.status, t.slice(0, 300));
-      return `failed:append:${appRes.status}`;
+    if (!putRes.ok) {
+      const t = await putRes.text();
+      console.error('Sheet explicit row write FAILED:', putRes.status, t.slice(0, 300));
+      return `failed:write:${putRes.status}`;
     }
-    return 'ok:appended';
+    return existingRow ? 'ok:updated' : 'ok:written';
   } catch (e) {
     const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 200) || ''}`;
     console.error('Sheet upsert error:', msg);
@@ -219,9 +229,9 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
     leadUuid = fromBody && uuidRe.test(fromBody) ? fromBody : uuidv7();
   }
 
-  // C2: the SERVER mints the event id, unconditionally. A browser-supplied
+  // C2: the SERVER owns event identity, reusing it for retries. A browser-supplied
   // value is ignored — one authority, or dedup silently breaks.
-  const eventId = uuidv7();
+  let eventId = uuidv7();
 
   const firstUrlBase = att.firstUrl || asString(body.firstUrl);
   const firstQuery = att.firstQuery || asString(body.firstQuery);
@@ -275,15 +285,25 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   if (DB) {
     try {
       const dupRow = await DB.prepare(
-        `SELECT lead_uuid FROM leads
+        `SELECT lead_uuid, event_id FROM leads
          WHERE conversion_status = 'ok'
-           AND COALESCE(updated_at, created_at) > datetime('now', '-1 day')
+           AND datetime(COALESCE(updated_at, created_at)) > datetime('now', '-1 day')
            AND (lower(email) = ? OR (? <> '' AND substr(phone, -10) = ?))
          LIMIT 1`
       )
         .bind(normEmail(email), p10, p10)
-        .first();
+        .first<{ lead_uuid: string; event_id: string }>();
       duplicate = !!dupRow;
+      if (dupRow?.event_id) eventId = dupRow.event_id;
+      else {
+        const retry = await DB.prepare(
+          `SELECT event_id FROM leads WHERE conversion_status IN ('failed', 'pending')
+           AND datetime(COALESCE(updated_at, created_at)) > datetime('now', '-1 day')
+           AND (lead_uuid = ? OR lower(email) = ? OR (? <> '' AND substr(phone, -10) = ?))
+           ORDER BY datetime(COALESCE(updated_at, created_at)) DESC LIMIT 1`
+        ).bind(leadUuid, normEmail(email), p10, p10).first<{ event_id: string }>();
+        if (retry?.event_id) eventId = retry.event_id;
+      }
     } catch (e) {
       const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 200) || ''}`;
       console.error('D1 dedup query error:', msg);
@@ -298,7 +318,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   let d1Ok = false;
   if (DB) {
     try {
-      await DB.prepare(
+      const stored = await DB.prepare(
         `INSERT INTO leads (
            lead_uuid, event_id, name, last_name, phone, email, fbp, fbc,
            utm_source, utm_medium, utm_campaign, utm_content, utm_term,
@@ -309,7 +329,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
            contactable, conversion_status, d1_status, updated_at, submit_count
          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'ok',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending','ok',?,1)
          ON CONFLICT(lead_uuid) DO UPDATE SET
-           event_id = excluded.event_id,
+           event_id = COALESCE(NULLIF(leads.event_id, ''), excluded.event_id),
            name = excluded.name,
            last_name = COALESCE(NULLIF(excluded.last_name,''), leads.last_name),
            phone = COALESCE(NULLIF(excluded.phone,''), leads.phone),
@@ -345,7 +365,8 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
            d1_status = 'ok',
            status = 'ok',
            updated_at = excluded.updated_at,
-           submit_count = leads.submit_count + 1`
+           submit_count = leads.submit_count + 1
+         RETURNING event_id`
       )
         .bind(
           leadUuid, eventId, firstName, lastName || null, phone || null, email, fbp, fbc,
@@ -356,7 +377,9 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
           consentGiven ? 1 : 0, consentText || null, consentVersion || null, consentUrl || null, consentAt || null,
           contactable, now
         )
-        .run();
+        .first<{ event_id: string }>();
+      if (!stored?.event_id) throw new Error('D1 returned no stored event ID');
+      eventId = stored.event_id;
       d1Ok = true;
       d1Status = 'ok';
     } catch (e) {
@@ -384,15 +407,31 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
       if (cfConsent && consentGiven && consentText) {
         customFields.push({ id: cfConsent, value: `${consentText} | version=${consentVersion} | url=${consentUrl} | at=${consentAt}` });
       }
+      const cfStoreOwner = getEnv('GHL_CF_STORE_OWNER_ID');
+      if (cfStoreOwner && isOwner) customFields.push({ id: cfStoreOwner, value: isOwner });
+      const cfUnits = getEnv('GHL_CF_UNITS_PER_MONTH_ID');
+      if (cfUnits && monthlyVolume) customFields.push({ id: cfUnits, value: monthlyVolume });
+      const tagSlug = (s: string) => s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, 40);
+      const tags = ['htl-b2b-website', contactable ? 'consent-captured' : 'no-consent-no-automation'];
+      if (utmSource && tagSlug(utmSource)) tags.push(`source-${tagSlug(utmSource)}`);
+      if (utmMedium && tagSlug(utmMedium)) tags.push(`medium-${tagSlug(utmMedium)}`);
+      if (utmCampaign && tagSlug(utmCampaign)) tags.push(`campaign-${tagSlug(utmCampaign)}`);
+      if (!utmSource && !fbclid && !gclid) tags.push('source-organic-or-direct');
+      try {
+        const path = new URL(lastUrl || request.headers.get('referer') || '').pathname;
+        tags.push(`funnel-${tagSlug(path.replace(/^\/+|\/+$/g, '')) || 'home'}`);
+      } catch { /* no trustworthy page context */ }
       const ghlPayload: Dict = {
         firstName,
         lastName: lastName || undefined,
         email,
         phone: phone || undefined,
         locationId: ghlLocationId,
+        companyName: businessName || undefined,
+        state: state || undefined,
         source: 'Hot Tub Launch B2B Website',
         // C11: a lead with no consent record must never enter an automated sequence
-        tags: ['htl-b2b-website', contactable ? 'consent-captured' : 'no-consent-no-automation'],
+        tags,
       };
       if (customFields.length) ghlPayload.customFields = customFields;
 
@@ -500,7 +539,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         firstQuery, consentGiven ? 'yes' : 'no', contactable ? 'yes' : 'no',
         conversionStatus, capiStatus, ghlStatus,
       ];
-      sheetStatus = await upsertSheetRow(token, gSheetsId, leadUuid, row);
+      sheetStatus = await upsertSheetRow(DB, token, gSheetsId, leadUuid, row);
       if (sheetStatus.startsWith('failed')) {
         await fireAlert({ alert: 'SHEET_UPSERT_FAILED', lead_uuid: leadUuid, detail: sheetStatus });
       }
@@ -510,6 +549,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
     }
   } else {
     console.error('Sheet secrets missing');
+    await fireAlert({ alert: 'SHEET_NOT_CONFIGURED', lead_uuid: leadUuid });
   }
 
   // ----- 5. Final status write-back (C6: every outcome lands in a column) -----
@@ -527,7 +567,9 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
         .bind(ghlContactId, ghlStatus, capiStatus, sheetStatus, conversionStatus, conversionStatus, leadUuid)
         .run();
     } catch (e) {
-      console.error('D1 status write-back error:', (e as Error)?.name || 'unknown', (e as Error)?.message?.slice(0, 200) || '');
+      const msg = `${(e as Error)?.name || 'unknown'}: ${(e as Error)?.message?.slice(0, 200) || ''}`;
+      console.error('D1 status write-back error:', msg);
+      await fireAlert({ alert: 'D1_STATUS_WRITE_FAILED', lead_uuid: leadUuid, error: msg });
     }
   }
 
@@ -538,5 +580,8 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   }
   const payload = { ok, leadUuid, eventId, duplicate, redirect: '/confirmed' };
   if (isJson) return json(ok ? 200 : 500, payload);
+  if (!ok) return new Response('We could not save your application. Please go back and try again.', {
+    status: 503, headers: { 'Content-Type': 'text/plain; charset=utf-8' },
+  });
   return redirect('/confirmed', 303);
 };

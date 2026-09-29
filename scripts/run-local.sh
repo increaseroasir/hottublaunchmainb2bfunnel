@@ -12,6 +12,8 @@ PORT="${PORT:-8787}"
 STUB_PORT="${STUB_PORT:-8788}"
 PERSIST=".wrangler-local"
 
+node scripts/client-conversion-test.mjs
+
 if [ -z "${SKIP_BUILD:-}" ]; then
   npm run build
 fi

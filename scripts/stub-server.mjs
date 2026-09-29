@@ -17,7 +17,7 @@ const PORT = Number(process.argv[2] || 8788);
 
 let state;
 function reset() {
-  state = { capi: [], ghl: [], alerts: [], sheetRows: [], tokenCalls: 0, fail: {} };
+  state = { capi: [], ghl: [], alerts: [], sheetRows: [['created_at', 'lead_uuid']], sheetWrites: [], tokenCalls: 0, fail: {} };
 }
 reset();
 
@@ -76,23 +76,21 @@ const server = http.createServer(async (req, res) => {
   // --- Google Sheets emulation ---
   // GET  /sheets/spreadsheets/{id}/values/'TAB'!B:B          → column B
   // PUT  /sheets/spreadsheets/{id}/values/'TAB'!A{n}         → replace row n
-  // POST /sheets/spreadsheets/{id}/values/'TAB':append       → append row
+  // :append is intentionally unsupported; rows must be explicit RAW PUTs.
   if (path.startsWith('/sheets/spreadsheets/')) {
+    if (state.fail.sheet) return send(res, Number(state.fail.sheet), { error: 'forced sheet failure' });
     const m = path.match(/\/values\/(.+)$/);
     const range = m ? m[1] : '';
     if (req.method === 'GET' && range.includes('!B:B')) {
-      return send(res, 200, { values: state.sheetRows.map((r) => [String(r[1] ?? '')]) });
+      return send(res, 200, { values: state.sheetRows.map((r) => [String(r?.[1] ?? '')]) });
     }
-    if (req.method === 'POST' && range.endsWith(':append')) {
-      const rows = body?.values || [];
-      for (const r of rows) state.sheetRows.push(r);
-      return send(res, 200, { updates: { updatedRows: rows.length } });
-    }
+    if (req.method === 'POST' && range.endsWith(':append')) return send(res, 405, { error: 'unsafe append' });
     if (req.method === 'PUT') {
-      const rm = range.match(/!A(\d+)$/);
+      const rm = range.match(/!A(\d+):AE\d+$/);
       const n = rm ? Number(rm[1]) : 0;
       const rows = body?.values || [];
       if (n >= 1 && rows.length) {
+        state.sheetWrites.push({ range, valueInputOption: url.searchParams.get('valueInputOption'), row: rows[0] });
         state.sheetRows[n - 1] = rows[0];
         return send(res, 200, { updatedRows: 1 });
       }
@@ -104,7 +102,7 @@ const server = http.createServer(async (req, res) => {
   // --- alert webhook ---
   if (path === '/alert') {
     state.alerts.push({ secret: req.headers['x-alert-secret'] || '', body });
-    return send(res, 200, { ok: true });
+    return send(res, Number(state.fail.alert) || 200, { ok: !state.fail.alert });
   }
 
   send(res, 404, { error: 'stub: unhandled ' + req.method + ' ' + path });

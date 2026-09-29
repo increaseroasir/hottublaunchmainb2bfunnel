@@ -453,6 +453,22 @@ async function main() {
     d1(`INSERT INTO leads (lead_uuid,event_id,name,email,phone,conversion_status,created_at,updated_at) VALUES ('${oldId}','old-event','Old','old-${ts}@example.com','+12025550179','ok','${cutoff}','${cutoff}')`);
     const aged = await postLead({first_name:'Aged', email:`old-${ts}@example.com`,phone:'2025550179'},null);
     gate('G13 ISO timestamp older than 24h is not suppressed', aged.data?.duplicate === false && aged.data?.eventId !== 'old-event');
+    const returningId = crypto.randomUUID();
+    const returning = {first_name:'Returning',email:`returning-${ts}@example.com`,phone:'2025550178',leadUuid:returningId};
+    d1(`INSERT INTO leads (lead_uuid,event_id,name,email,phone,conversion_status,created_at,updated_at) VALUES ('${returningId}','expired-success','Returning','${returning.email}','+12025550178','ok','${cutoff}','${cutoff}')`);
+    d1("CREATE TRIGGER fail_rollover_status BEFORE UPDATE OF sheet_status ON leads BEGIN SELECT RAISE(FAIL, 'local rollover status failure'); END");
+    await stub('/__fail', {capi:500});
+    const rollover = await postLead(returning,null);
+    const pending = d1(`SELECT event_id,conversion_status FROM leads WHERE lead_uuid='${returningId}'`)[0];
+    d1('DROP TRIGGER fail_rollover_status');
+    await stub('/__fail', {});
+    const rolloverRetry = await postLead(returning,null);
+    const succeeded = d1(`SELECT event_id,conversion_status FROM leads WHERE lead_uuid='${returningId}'`)[0];
+    gate('G13b same UUID after 25h gets new ID/pending status; interrupted failure retries same new ID',
+      rollover.data?.duplicate === false && rollover.data.eventId !== 'expired-success' &&
+      pending.conversion_status === 'pending' && pending.event_id === rollover.data.eventId &&
+      rolloverRetry.data?.duplicate === false && rolloverRetry.data.eventId === rollover.data.eventId &&
+      succeeded.conversion_status === 'ok' && succeeded.event_id === rollover.data.eventId);
     await stub('/__fail', { sheet: 503, alert: 503 });
     const failId = crypto.randomUUID();
     const failed = await postLead(mk(10,failId),null);

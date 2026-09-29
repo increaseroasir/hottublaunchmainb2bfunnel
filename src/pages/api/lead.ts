@@ -329,7 +329,15 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
            contactable, conversion_status, d1_status, updated_at, submit_count
          ) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'ok',?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'pending','ok',?,1)
          ON CONFLICT(lead_uuid) DO UPDATE SET
-           event_id = COALESCE(NULLIF(leads.event_id, ''), excluded.event_id),
+           event_id = CASE
+             WHEN datetime(COALESCE(leads.updated_at, leads.created_at)) > datetime('now', '-1 day')
+               AND leads.conversion_status IN ('ok', 'pending', 'failed')
+             THEN COALESCE(NULLIF(leads.event_id, ''), excluded.event_id)
+             ELSE excluded.event_id END,
+           conversion_status = CASE
+             WHEN datetime(COALESCE(leads.updated_at, leads.created_at)) > datetime('now', '-1 day')
+               AND leads.conversion_status = 'ok' THEN 'ok'
+             ELSE 'pending' END,
            name = excluded.name,
            last_name = COALESCE(NULLIF(excluded.last_name,''), leads.last_name),
            phone = COALESCE(NULLIF(excluded.phone,''), leads.phone),
@@ -366,7 +374,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
            status = 'ok',
            updated_at = excluded.updated_at,
            submit_count = leads.submit_count + 1
-         RETURNING event_id`
+         RETURNING event_id, conversion_status`
       )
         .bind(
           leadUuid, eventId, firstName, lastName || null, phone || null, email, fbp, fbc,
@@ -377,9 +385,11 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
           consentGiven ? 1 : 0, consentText || null, consentVersion || null, consentUrl || null, consentAt || null,
           contactable, now
         )
-        .first<{ event_id: string }>();
+        .first<{ event_id: string; conversion_status: string }>();
       if (!stored?.event_id) throw new Error('D1 returned no stored event ID');
       eventId = stored.event_id;
+      // A concurrent same-UUID request may have completed after our dedup read.
+      duplicate ||= stored.conversion_status === 'ok';
       d1Ok = true;
       d1Status = 'ok';
     } catch (e) {

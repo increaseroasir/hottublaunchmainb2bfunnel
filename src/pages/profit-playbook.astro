@@ -692,8 +692,9 @@ import { CONSENT_TEXT } from '../data/consent';
           </div>
 
           <div class="pb-field">
-            <label for="profitPhone">Phone Number (optional)</label>
-            <input id="profitPhone" name="phone" type="tel" autocomplete="tel" placeholder="(979) 459-9221" />
+            <label for="profitPhone">Phone Number *</label>
+            <input id="profitPhone" name="phone" type="tel" required aria-describedby="profit-phone-error" autocomplete="tel" placeholder="(979) 459-9221" />
+            <span id="profit-phone-error" class="field-error" data-error-for="phone" aria-live="polite"></span>
           </div>
 
           <!-- Consent — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->

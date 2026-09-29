@@ -124,7 +124,7 @@ const unescapeHtml = (s) => s.replace(/&amp;/g, '&').replace(/&quot;/g, '"').rep
 
 const ts = Date.now();
 const EMAIL = `smoke-${ts}@example.com`;
-const PHONE = '555' + String(ts).slice(-7); // 10 unique-ish digits per run
+const PHONE = '2025550142'; // reserved fictional US number; all integrations are local stubs
 
 async function main() {
   console.log(`\nSMOKE — base=${BASE} mode=${MODE}${BREAK ? ` BREAK=${BREAK}` : ''}\n`);
@@ -146,6 +146,38 @@ async function main() {
     if (!pprOk) bad.push(`/ppr→${ppr.status} Location=${loc}`);
     gate('G1 routes 200 + /ppr 301 preserves query', bad.length === 0, bad.join(', '));
   }
+  if (MODE !== 'live') {
+    const routes = ['/apply', '/check-territory', '/profit-playbook', '/case-study', '/webinar-registration'];
+    const bad = [];
+    for (const route of routes) {
+      const html = await (await get(route, null)).text();
+      const input = html.match(/<input[^>]*name="phone"[^>]*>/)?.[0] || '';
+      if (!input.includes('required') || !input.includes('aria-describedby') ||
+          !html.includes('data-error-for="phone"')) bad.push(route);
+    }
+    gate('G1a all five rendered forms require phone with an inline error target', bad.length === 0, bad.join(', '));
+  }
+
+  // Local-only phone gate: reject invalid requests before D1 or any downstream call.
+  if (MODE !== 'live' && stubAvailable) {
+    const invalid = ['', 'garbage', '202555', '+1 111 111 1111'];
+    const before = d1('SELECT COUNT(*) AS n FROM leads')[0]?.n ?? 0;
+    let allRejected = true;
+    for (const phone of invalid) {
+      const { res, data } = await postLead({ first_name: 'Phone', email: `invalid-${ts}@example.com`, phone }, null);
+      allRejected &&= res.status === 400 && data?.ok === false && String(data?.error).includes('phone');
+    }
+    const formRes = await rfetch(BASE + '/api/lead', {
+      method: 'POST', headers: { 'Content-Type': 'application/x-www-form-urlencoded', Origin: BASE },
+      body: new URLSearchParams({ first_name: 'Phone', email: `invalid-form-${ts}@example.com`, phone: '' }),
+    });
+    const after = d1('SELECT COUNT(*) AS n FROM leads')[0]?.n ?? 0;
+    const state = await stub('/__state');
+    gate('G1b invalid JSON/form phone → 400, zero D1 inserts or service calls',
+      allRejected && formRes.status === 400 && before === after &&
+      state.ghl.length === 0 && state.capi.length === 0 && state.sheetRows.length === 0 &&
+      state.tokenCalls === 0 && state.alerts.length === 0);
+  }
 
   // ============ GATE 2 — tagged walk end-to-end, every attribution field non-empty ============
   const j1 = jar();
@@ -164,7 +196,7 @@ async function main() {
     const renderedOk = TAG_PARAMS.every((p) => renderedFirstQuery.includes(p));
 
     const payload = {
-      first_name: 'Smoke', last_name: 'Test', email: EMAIL, phone: PHONE,
+      first_name: 'Smoke', last_name: 'Test', email: EMAIL, phone: '+1 (202) 555-0142',
       businessName: 'Smoke Spa Co', state: 'MI', isOwner: 'yes', monthlyVolume: '5-10',
       terms: 'on', consentGiven: 'true', consentText, consentVersion,
       consentUrl: BASE + '/check-territory',
@@ -177,11 +209,11 @@ async function main() {
 
     let d1Ok = null, d1Detail = '';
     if (MODE !== 'live') {
-      const rows = d1(`SELECT utm_source, utm_medium, utm_campaign, utm_content, utm_term, first_query, first_url, landing_url, gclid, fbc, consent_text, contactable FROM leads WHERE lead_uuid='${data?.leadUuid}'`);
+      const rows = d1(`SELECT utm_source, utm_medium, utm_campaign, utm_content, utm_term, first_query, first_url, landing_url, gclid, fbc, consent_text, contactable, phone FROM leads WHERE lead_uuid='${data?.leadUuid}'`);
       const r = rows[0] || {};
       const need = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term', 'first_query', 'first_url', 'landing_url', 'gclid', 'fbc', 'consent_text'];
       const empty = need.filter((k) => !r[k]);
-      d1Ok = rows.length === 1 && empty.length === 0 && r.contactable === 1;
+      d1Ok = rows.length === 1 && empty.length === 0 && r.contactable === 1 && r.phone === '+12025550142';
       d1Detail = empty.length ? 'empty: ' + empty.join(',') : rows.length !== 1 ? 'no row' : '';
     }
 
@@ -204,6 +236,12 @@ async function main() {
     const all = [cookieCarriesAll, renderedOk, contractOk, d1Ok !== false, capiOk !== false].every(Boolean);
     gate('G2 tagged walk: cookie → rendered fields → JSON contract → D1 → CAPI payload', all,
       [!cookieCarriesAll && 'first-touch cookie missing params', !renderedOk && `rendered firstQuery="${renderedFirstQuery}"`, !contractOk && `contract=${JSON.stringify(data)}`, d1Ok === false && `D1: ${d1Detail}`, capiOk === false && `CAPI: ${capiDetail}`].filter(Boolean).join(' | '));
+    if (stubAvailable) {
+      const st = await stub('/__state');
+      gate('G2b formatted phone → same E.164 in D1, GHL, Sheet',
+        d1Ok === true && st.ghl[0]?.body?.phone === '+12025550142' &&
+        st.sheetRows[0]?.[6] === '+12025550142');
+    }
   }
 
   // ============ GATE 3 — one submit → exactly one server event with the server's id ============
@@ -224,7 +262,7 @@ async function main() {
     const payload = {
       first_name: 'Smoke', last_name: 'Test',
       email: BREAK === 'dedup' ? `different-${ts}@example.com` : EMAIL,
-      phone: BREAK === 'dedup' ? '555' + String(ts + 1111111).slice(-7) : PHONE,
+      phone: BREAK === 'dedup' ? '2025550144' : PHONE,
       businessName: 'Smoke Spa Co', state: 'MI', isOwner: 'yes', monthlyVolume: '5-10',
       terms: 'on', consentGiven: 'true', consentText: 'x', consentVersion: 'v', consentUrl: BASE,
     };
@@ -243,7 +281,7 @@ async function main() {
   // ============ GATE 4b — C4: a prior FAILED conversion allows a retry ============
   if (stubAvailable && MODE !== 'live') {
     const em2 = `retry-${ts}@example.com`;
-    const ph2 = '444' + String(ts).slice(-7);
+    const ph2 = '2025550143';
     const mk = (j) => ({ first_name: 'Retry', last_name: 'Case', email: em2, phone: ph2, businessName: 'X Spa', state: 'MI', isOwner: 'yes', monthlyVolume: '5-10', terms: 'on', consentGiven: 'true', consentText: 'x', consentVersion: 'v', consentUrl: BASE });
     await stub('/__fail', { capi: 500 });
     const jA = jar(); await get('/', jA);
@@ -371,6 +409,19 @@ async function main() {
       if (BREAK === 'hygiene') rmSync(redteamFile, { force: true });
     }
     gate('G8 no test event code, no *.private.json, no secret-shaped literals', bad.length === 0, bad.join(' | '));
+  }
+
+  if (MODE !== 'live' && stubAvailable) {
+    const { res, data } = await postLead({
+      first_name: 'International', email: `international-${ts}@example.com`,
+      phone: '+44 20 7946 0958', terms: 'on', consentText: 'local test',
+    }, null);
+    const row = d1(`SELECT phone FROM leads WHERE lead_uuid='${data?.leadUuid}'`)[0];
+    const st = await stub('/__state');
+    gate('G9 explicit international number → E.164 in D1, GHL, Sheet',
+      res.status === 200 && row?.phone === '+442079460958' &&
+      st.ghl.at(-1)?.body?.phone === '+442079460958' &&
+      st.sheetRows.at(-1)?.[6] === '+442079460958');
   }
 
   console.log('');

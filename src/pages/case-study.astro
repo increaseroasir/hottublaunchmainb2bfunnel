@@ -178,8 +178,9 @@ import { CONSENT_TEXT } from '../data/consent';
           </div>
 
           <div class="field-group">
-            <label class="input-label" for="cs-phone">Phone number</label>
-            <input id="cs-phone" name="phone" type="tel" autocomplete="tel" placeholder="(979) 459-9221" />
+            <label class="input-label" for="cs-phone">Phone number *</label>
+            <input id="cs-phone" name="phone" type="tel" required aria-describedby="cs-phone-error" autocomplete="tel" placeholder="(979) 459-9221" />
+            <span id="cs-phone-error" class="field-error" data-error-for="phone" aria-live="polite"></span>
           </div>
 
           <!-- Consent — label text IS the stored consent record (B8/C10); edit src/data/consent.ts, not here -->

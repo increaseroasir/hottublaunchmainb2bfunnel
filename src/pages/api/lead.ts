@@ -9,6 +9,7 @@
 // Every failure lands in a status column AND fires the alert webhook (C6).
 
 import type { APIRoute } from 'astro';
+import { validPhoneE164 } from '../../lib/phone';
 import {
   readAttribution,
   parseAdParams,
@@ -26,7 +27,6 @@ import {
   googleTokenUrl,
   normEmail,
   phone10,
-  phoneE164,
   sheetsBase,
   type Dict,
 } from '../../lib/server';
@@ -195,6 +195,8 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   if (firstName.length < 2 || !emailRe.test(email)) {
     return contractError(400, 'Name and valid email required.');
   }
+  const phone = validPhoneE164(phoneRaw);
+  if (!phone) return contractError(400, 'Enter a valid phone number.');
 
   const businessName = asString(body.businessName);
   const state = asString(body.state);
@@ -263,8 +265,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   // C11: contactable only with a real consent record — text included
   const contactable = consentGiven && consentText.length > 0 ? 1 : 0;
 
-  const phone = phoneRaw ? phoneE164(phoneRaw) : '';
-  const p10 = phoneRaw ? phone10(phoneRaw) : '';
+  const p10 = phone10(phone);
   const ip = request.headers.get('cf-connecting-ip') || clientAddress || '';
   const ua = request.headers.get('user-agent') || '';
 
@@ -445,7 +446,7 @@ export const POST: APIRoute = async ({ request, redirect, clientAddress }) => {
   } else if (metaCapiToken && metaPixelId) {
     const userData = await buildUserData({
       email,
-      phone: phoneRaw || undefined,
+      phone,
       firstName,
       lastName: lastName || undefined,
       state: state || undefined, // C8: st added because the form collects it; zp/ct NOT collected → N/A

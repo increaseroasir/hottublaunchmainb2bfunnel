@@ -15,6 +15,7 @@
 // the event id comes from the server response.
 
 import { readAttributionClient, fullUrl, META_PIXEL_ID } from './attribution';
+import { validPhoneE164 } from './phone';
 
 declare global {
   // Meta pixel
@@ -66,14 +67,6 @@ async function sha256hex(str: string): Promise<string> {
     .join('');
 }
 
-// Normalize phone the same way the server does (strip non-digits, 10-digit → 1-prefixed)
-function normPhone(p: string): string {
-  let d = String(p).replace(/\D/g, '');
-  if (d.startsWith('00')) d = d.slice(2);
-  if (d.length === 10) d = '1' + d;
-  return d;
-}
-
 function fieldValue(form: HTMLFormElement, name: string): string {
   const input = form.elements.namedItem(name);
   return input instanceof HTMLInputElement || input instanceof HTMLSelectElement
@@ -97,7 +90,7 @@ function collectPayload(form: HTMLFormElement): Record<string, string> {
 }
 
 /** B7: hashed Advanced Matching init, identical normalization to the server. */
-async function fireBrowserLead(form: HTMLFormElement, eventId: string): Promise<void> {
+async function fireBrowserLead(form: HTMLFormElement, eventId: string, phone: string): Promise<void> {
   if (typeof fbq !== 'function' || !eventId) return;
   const leadUuid = fieldValue(form, 'leadUuid');
   try {
@@ -105,7 +98,7 @@ async function fireBrowserLead(form: HTMLFormElement, eventId: string): Promise<
       sha256hex(
         (fieldValue(form, 'email')).toLowerCase()
       ),
-      sha256hex(normPhone(fieldValue(form, 'phone'))),
+      sha256hex(phone.replace(/\D/g, '')),
       sha256hex((fieldValue(form, 'first_name') || fieldValue(form, 'name')).toLowerCase()),
       sha256hex((fieldValue(form, 'last_name') || fieldValue(form, 'lastName')).toLowerCase()),
       leadUuid ? sha256hex(leadUuid) : Promise.resolve(''),
@@ -134,7 +127,13 @@ export function wireLeadForm(opts: WireOptions): void {
     event.preventDefault(); // B4: fetch, never a native POST from here
     if (submitting) return;
 
-    if (opts.validate && !opts.validate()) return;
+    const pageValid = opts.validate ? opts.validate() : true;
+    const phoneInput = form.elements.namedItem('phone');
+    const phone = phoneInput instanceof HTMLInputElement ? validPhoneE164(phoneInput.value) : null;
+    const phoneError = form.querySelector('[data-error-for="phone"]');
+    if (phoneInput instanceof HTMLInputElement) phoneInput.setAttribute('aria-invalid', phone ? 'false' : 'true');
+    if (phoneError) phoneError.textContent = phone ? '' : 'Enter a valid phone number.';
+    if (!pageValid || !phone) return;
     opts.onBeforeSubmit?.();
     populateHiddenFields(form); // refresh fbp/fbc — the pixel may have set them after load
 
@@ -146,6 +145,7 @@ export function wireLeadForm(opts: WireOptions): void {
     setBusy(true);
 
     const payload = collectPayload(form);
+    payload.phone = phone;
     try {
       sessionStorage.setItem('lead_name', payload.first_name || payload.name || '');
       sessionStorage.setItem('lead_email', payload.email || '');
@@ -170,14 +170,19 @@ export function wireLeadForm(opts: WireOptions): void {
 
       if (!data.ok) {
         setBusy(false);
-        const slot = form.querySelector('[data-error-for="email"], .form-error');
+        const slot = data.error?.toLowerCase().includes('phone')
+          ? form.querySelector('[data-error-for="phone"]')
+          : form.querySelector('[data-error-for="email"], .form-error');
         if (slot) slot.textContent = data.error || 'Something went wrong — please try again.';
+        if (data.error?.toLowerCase().includes('phone') && phoneInput instanceof HTMLInputElement) {
+          phoneInput.setAttribute('aria-invalid', 'true');
+        }
         return;
       }
 
       // B5 + B6: server's event id, browser half gated on duplicate === false
       if (data.duplicate === false && data.eventId) {
-        await fireBrowserLead(form, data.eventId);
+        await fireBrowserLead(form, data.eventId, phone);
       }
       window.location.assign(data.redirect || '/confirmed');
     })();
